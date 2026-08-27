@@ -1,1 +1,27 @@
-/* Screen styles land here in phase 4. */
+/* Phase 3 dev harness only; replaced by the real screens in phase 4. */
+
+.harness {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
+}
+
+.harness h1 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.harness-hint,
+#stats {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+#board {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}

@@ -30,7 +30,7 @@ export type Paths = readonly (readonly Cell[])[];
 export type EngineEvent =
   | { type: 'change' }
   | { type: 'pathCompleted'; color: number }
-  | { type: 'pathCut'; color: number }
+  | { type: 'pathCut'; color: number; removed: readonly Cell[] }
   | { type: 'won' };
 
 export type EngineListener = (event: EngineEvent) => void;

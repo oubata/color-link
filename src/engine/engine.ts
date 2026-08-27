@@ -233,8 +233,8 @@ export class Engine {
         }
       }
       if (cutAt >= 0) {
-        this.truncatePath(d, cutAt);
-        this.emit({ type: 'pathCut', color: d });
+        const removed = this.truncatePath(d, cutAt);
+        this.emit({ type: 'pathCut', color: d, removed });
       }
     }
 
@@ -314,8 +314,8 @@ export class Engine {
     if (occupied !== EMPTY && occupied !== color) {
       const cutAt = this.indexInPath(occupied, cell);
       if (cutAt >= 0) {
-        this.truncatePath(occupied, cutAt);
-        this.emit({ type: 'pathCut', color: occupied });
+        const removed = this.truncatePath(occupied, cutAt);
+        this.emit({ type: 'pathCut', color: occupied, removed });
       }
     }
 
@@ -354,15 +354,16 @@ export class Engine {
     this.occupant[cellIndex(this.size, cell)] = color;
   }
 
-  private truncatePath(color: number, length: number): void {
+  /** Returns the cells that were dropped, so the renderer can fade them out. */
+  private truncatePath(color: number, length: number): Cell[] {
     const path = this.path(color);
-    for (let i = length; i < path.length; i++) {
-      const cell = path[i];
-      if (!cell) continue;
+    const removed = path.slice(length);
+    for (const cell of removed) {
       const index = cellIndex(this.size, cell);
       this.occupant[index] = this.endpointColor[index] ?? EMPTY;
     }
     path.length = length;
+    return removed;
   }
 
   private setPaths(paths: Cell[][]): void {
