@@ -149,12 +149,12 @@ export async function launch({
     requests,
     send,
 
-    async setViewport(width, height, dpr = 3) {
+    async setViewport(width, height, dpr = 3, mobile = true) {
       await send('Emulation.setDeviceMetricsOverride', {
         width,
         height,
         deviceScaleFactor: dpr,
-        mobile: true,
+        mobile,
       });
     },
 
@@ -247,6 +247,17 @@ export async function launch({
         text,
       });
       await send('Input.dispatchKeyEvent', { ...base, type: 'keyUp' });
+    },
+
+    /**
+     * Drop the browser's opaque white page backdrop so a screenshot keeps its
+     * alpha channel. Used when rasterising icons.
+     */
+    async setTransparentBackground(on) {
+      await send(
+        'Emulation.setDefaultBackgroundColorOverride',
+        on ? { color: { r: 0, g: 0, b: 0, a: 0 } } : {},
+      );
     },
 
     async enableNetwork() {

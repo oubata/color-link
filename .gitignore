@@ -1,9 +1,11 @@
-node_modules
-dist
-dist-ssr
 *.local
 .DS_Store
 .vite
 coverage
-scripts/verify/screenshots
+dist
+dist-ssr
+node_modules
+scripts/icons/.icon-profile
 scripts/verify/.browser-profile
+scripts/verify/.pwa-profile
+scripts/verify/screenshots

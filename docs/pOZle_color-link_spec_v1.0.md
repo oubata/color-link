@@ -804,3 +804,39 @@ Next: Phase N+1
 **Home tier rows carry no `aria-label`.** A label that does not contain the row's own visible text breaks voice control and fails the axe `label-content-name-mismatch` rule. The row's content already reads "Easy 5×5 0/100".
 
 **Verified at delivery:** 175 unit tests, 89 browser checks, all 600 levels generated and replayed, and Lighthouse (mobile) on the production build at 100 accessibility, 100 performance, 100 best practices.
+
+### Phase 6 — installable (as-built)
+
+**Dependency added: `vite-plugin-pwa` (dev only), approved by Tob.** The only
+addition beyond section 11.4 and the jsdom note above. It contributes nothing
+to the JS bundle, which stays at 17.5 kB gzipped; it emits `sw.js`,
+`workbox-*.js` and `manifest.webmanifest` alongside it.
+
+**`base` is relative (`'./'`).** The build runs from a domain root, a GitHub
+Pages project subpath, or a file server with no reconfiguration, so
+`start_url` and `scope` in the manifest are `'.'` to match.
+
+**Orientation is not locked.** Section 5.5 requires the board to re-lay out on
+rotation, so pinning the manifest to `portrait` would contradict it.
+
+**Icons are generated, not hand-drawn.** `npm run icons` rasterises
+`icon-192`, `icon-512`, `icon-maskable-512` and a 180 px `apple-touch-icon`
+from the favicon artwork, using the same headless browser the verification
+harness drives — so section 11.4 gains no image dependency. The maskable
+variant is full-bleed with the artwork inside the middle 64%, well within the
+80% safe zone; the plain icons have their corner radius cut out of the alpha
+channel; the Apple icon is opaque, which iOS requires.
+
+**Repository layout: `README.md` and `scripts/icons/` added.** The README
+carries the deploy instructions phase 6 calls for (Netlify, GitHub Pages, and
+the two things any other host must get right: HTTPS, and not caching `sw.js`
+or `index.html` hard).
+
+**Criterion 17 re-verified against the production build.** A service worker
+could have broken "zero requests after initial load"; it does not. Precaching
+happens once during the initial load, and a level played afterwards issues no
+request at all. `npm run verify:pwa` asserts this.
+
+**Phase 6 verified:** 22 browser checks, including a genuine offline pass — the
+preview server is killed, the network is emulated offline, and the app is
+reloaded and a level played to a solve. Unit tests total 188.
