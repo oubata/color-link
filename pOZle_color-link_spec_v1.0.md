@@ -1,16 +1,16 @@
 # Color Link — Game Design & Implementation Spec
 
-| Field | Value |
-|---|---|
-| Version | v1.0 |
-| Date | 2026-08-27 |
-| Status | Draft |
-| Genre | Grid path-connection logic puzzle (Flow-style) |
-| Platform | Web (mobile-first, responsive to desktop); installable PWA is a stretch goal |
-| Stack | TypeScript (strict), Vite, HTML5 Canvas for the board, plain DOM for all chrome, Vitest for tests |
-| Estimated build | 1 Claude Code session for MVP (phases 0–5 in section 17) |
+| Field           | Value                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| Version         | v1.0                                                                                              |
+| Date            | 2026-08-27                                                                                        |
+| Status          | Draft                                                                                             |
+| Genre           | Grid path-connection logic puzzle (Flow-style)                                                    |
+| Platform        | Web (mobile-first, responsive to desktop); installable PWA is a stretch goal                      |
+| Stack           | TypeScript (strict), Vite, HTML5 Canvas for the board, plain DOM for all chrome, Vitest for tests |
+| Estimated build | 1 Claude Code session for MVP (phases 0–5 in section 17)                                          |
 
-Reference: "Color Link" mode in the mobile app *Numpuz*. This spec re-implements the core mechanic, keeps the tier/level structure, removes all monetisation and decoration, restyles the UI in the spirit of the New York Times Games apps (white, typographic, minimal), and extends the difficulty ladder with two new tiers, **Expert** and **Master**, placed after **Extreme**.
+Reference: "Color Link" mode in the mobile app _Numpuz_. This spec re-implements the core mechanic, keeps the tier/level structure, removes all monetisation and decoration, restyles the UI in the spirit of the New York Times Games apps (white, typographic, minimal), and extends the difficulty ladder with two new tiers, **Expert** and **Master**, placed after **Extreme**.
 
 ---
 
@@ -20,33 +20,33 @@ An N×N grid holds pairs of coloured dots. You drag a line from one dot to its t
 
 ## 2. Assumptions
 
-Tob confirms or overrides each of these. Anything marked *(config)* can be changed by editing a single constant in `src/generator/difficulty.ts` or `src/app/config.ts` without touching logic.
+Tob confirms or overrides each of these. Anything marked _(config)_ can be changed by editing a single constant in `src/generator/difficulty.ts` or `src/app/config.ts` without touching logic.
 
-1. **Tier ladder** is Easy 5×5, Normal 6×6, Hard 8×8, Extreme 10×10, Expert 12×12, Master 14×14 — in that order of increasing difficulty. Numpuz's "Hell" tier is dropped. The ladder is a config array; adding "Hell" back as a 7th tier is one entry. *(config)*
-2. Numpuz does not reveal Extreme's board size (it is locked in the screenshots); 10×10 is chosen so that each tier grows by ≥2 cells per side. *(config)*
-3. **100 levels per tier**, matching the original. *(config)*
+1. **Tier ladder** is Easy 5×5, Normal 6×6, Hard 8×8, Extreme 10×10, Expert 12×12, Master 14×14 — in that order of increasing difficulty. Numpuz's "Hell" tier is dropped. The ladder is a config array; adding "Hell" back as a 7th tier is one entry. _(config)_
+2. Numpuz does not reveal Extreme's board size (it is locked in the screenshots); 10×10 is chosen so that each tier grows by ≥2 cells per side. _(config)_
+3. **100 levels per tier**, matching the original. _(config)_
 4. **Win condition requires 100% cell coverage**, not merely all pairs connected. The original displays a "coverage rate" and the reference genre (Flow Free) requires a full board. This also gives a clean solvability guarantee (section 7.1).
 5. **Drawing over another colour's line cuts that line back** to the cell before the collision (Flow Free behaviour) rather than blocking the pointer. This is better on touch and still enforces "lines never intersect" in any resting state.
 6. **Levels are procedurally generated at runtime from a deterministic seed** derived from `(generatorVersion, tierId, levelIndex)`. No level JSON is shipped. Same level for every player, every device, forever (until `GENERATOR_VERSION` is bumped).
-7. **Tier unlocks** mirror the original: Easy, Normal and Hard are always open; Extreme unlocks after 20 Hard levels solved; Expert after 20 Extreme; Master after 20 Expert. *(config)*
+7. **Tier unlocks** mirror the original: Easy, Normal and Hard are always open; Extreme unlocks after 20 Hard levels solved; Expert after 20 Extreme; Master after 20 Expert. _(config)_
 8. **Within a tier all 100 levels are playable in any order** (no sequential lock). The level grid highlights the first unsolved level as the suggested next one. This departs from the original's sequential unlock in favour of NYT-style freedom.
 9. **No coins, ads, hint economy, stars, or share-to-earn**. Hints are unlimited; a level solved with a hint is recorded as such and displayed with a hollow marker instead of a solid one.
 10. **No lose condition.** The timer counts up and is informational only.
 11. **Board rendering uses Canvas**; every other screen is plain DOM + CSS. No game engine, no UI framework.
 12. **Sound defaults to on**, synthesised with the Web Audio API (no audio files). Haptics default to on where `navigator.vibrate` exists.
 13. **No backend, no analytics, no network requests after initial load.**
-14. Working title is "Color Link" (US spelling, matching the reference). The display name lives in one constant (`APP_NAME`) for later renaming. *(config)*
+14. Working title is "Color Link" (US spelling, matching the reference). The display name lives in one constant (`APP_NAME`) for later renaming. _(config)_
 15. Languages: English UI only for MVP; all user-facing strings live in one `strings.ts` file to make French a later drop-in.
 
 ## 3. Player experience
 
 - **Session length**: 20 s (Easy) to 5–10 min (Master) per level. A play session is typically 3–10 levels. Nothing interrupts play; there are no popups except the solved card.
-- **Difficulty curve**: two axes. *Across tiers*, board size grows (5→14). *Within a tier*, level 1 uses the most pairs (short, obvious paths) and level 100 the fewest (long, winding paths); the generator also requires progressively more bends per path. Concretely, "hard" means fewer, longer lines that must snake around each other to cover the board.
+- **Difficulty curve**: two axes. _Across tiers_, board size grows (5→14). _Within a tier_, level 1 uses the most pairs (short, obvious paths) and level 100 the fewest (long, winding paths); the generator also requires progressively more bends per path. Concretely, "hard" means fewer, longer lines that must snake around each other to cover the board.
 - **Emotional target**: calm and clever. Quiet feedback, no shaking, no confetti; a short, satisfying solve animation and a clean results card.
 - **Reference games and what is borrowed**:
-  - *Numpuz – Color Link*: the mechanic, the tier/level structure, the "lines x/y" and coverage HUD, tier unlock thresholds.
-  - *Flow Free*: exact drag semantics (start from an endpoint, cut other lines, backtrack), cell tint under paths, full-coverage rule.
-  - *NYT Games (Wordle, Connections, Strands)*: visual language — white background, black text, serif headline, thin rules, pill buttons, single accent, results card with time, dark mode.
+  - _Numpuz – Color Link_: the mechanic, the tier/level structure, the "lines x/y" and coverage HUD, tier unlock thresholds.
+  - _Flow Free_: exact drag semantics (start from an endpoint, cut other lines, backtrack), cell tint under paths, full-coverage rule.
+  - _NYT Games (Wordle, Connections, Strands)_: visual language — white background, black text, serif headline, thin rules, pill buttons, single accent, results card with time, dark mode.
 
 ## 4. Core loop
 
@@ -62,40 +62,41 @@ Tob confirms or overrides each of these. Anything marked *(config)* can be chang
 
 ### 5.1 Board / world
 
-| Element | Definition |
-|---|---|
-| Board | Square grid of `size × size` cells, `size ∈ {5, 6, 8, 10, 12, 14}`. Cell coordinates `[row, col]`, 0-based, row 0 at top. |
-| Cell | Exactly one of: empty; occupied by colour `c`. Occupancy is derived from paths. |
-| Endpoint | A cell permanently marked with colour `c`. Each colour has exactly two endpoints, `a` and `b`. Endpoints are always occupied by their own colour (an endpoint with no path still counts as occupied by `c` for coverage). |
-| Colour | Integer `0 ≤ c < K`, `K` = number of pairs in the level, `K ≤ 16` (palette size). |
-| Path | Ordered list of cells for colour `c`. Either empty, or begins at one of `c`'s endpoints and consists of orthogonally adjacent, pairwise-distinct cells. A path is **complete** when its last cell is the other endpoint of `c`. |
-| Adjacency | Orthogonal only (up/down/left/right). No diagonals, no wrapping. |
-| Initial state | All paths empty. Occupancy = endpoint cells only. Timer = 0, moves = 0, hintUsed = false. |
+| Element       | Definition                                                                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Board         | Square grid of `size × size` cells, `size ∈ {5, 6, 8, 10, 12, 14}`. Cell coordinates `[row, col]`, 0-based, row 0 at top.                                                                                                       |
+| Cell          | Exactly one of: empty; occupied by colour `c`. Occupancy is derived from paths.                                                                                                                                                 |
+| Endpoint      | A cell permanently marked with colour `c`. Each colour has exactly two endpoints, `a` and `b`. Endpoints are always occupied by their own colour (an endpoint with no path still counts as occupied by `c` for coverage).       |
+| Colour        | Integer `0 ≤ c < K`, `K` = number of pairs in the level, `K ≤ 16` (palette size).                                                                                                                                               |
+| Path          | Ordered list of cells for colour `c`. Either empty, or begins at one of `c`'s endpoints and consists of orthogonally adjacent, pairwise-distinct cells. A path is **complete** when its last cell is the other endpoint of `c`. |
+| Adjacency     | Orthogonal only (up/down/left/right). No diagonals, no wrapping.                                                                                                                                                                |
+| Initial state | All paths empty. Occupancy = endpoint cells only. Timer = 0, moves = 0, hintUsed = false.                                                                                                                                       |
 
 ### 5.2 Legal moves
 
 All interaction is a **stroke**: pointer-down (`begin`), zero or more pointer-moves (`extend`), pointer-up (`end`). The engine exposes exactly these operations plus `undo`, `restart`, `hint`. `head(c)` = last cell of `paths[c]`.
 
-| Operation | Precondition | Effect |
-|---|---|---|
-| `begin(cell)` — cell is an endpoint of colour `c` | — | `paths[c] = [cell]` (any previous path of `c`, complete or not, is discarded). Stroke becomes active for `c`. |
-| `begin(cell)` — cell is occupied by colour `c` but is not an endpoint | — | `paths[c]` truncated to end at `cell` (inclusive). Stroke active for `c`. |
-| `begin(cell)` — cell empty | — | No effect; no active stroke. |
-| `extend(cell)` — no active stroke | — | No effect. |
-| `extend(cell)` — `cell == head(c)` | active stroke | No effect. |
-| `extend(cell)` — `paths[c]` is complete | active stroke | No effect (a complete path cannot be extended; the player must `begin` again to redraw). |
-| `extend(cell)` — cell not orthogonally adjacent to `head(c)` | active stroke | If `cell` shares a row or column with `head(c)`, apply `extend` to each intermediate cell in order, stopping at the first one that has no effect. Otherwise no effect. (Handles fast pointer movement that skips cells.) |
-| `extend(cell)` — cell already in `paths[c]` | active stroke | Backtrack: `paths[c]` truncated to end at `cell` (inclusive). |
-| `extend(cell)` — cell is an endpoint of colour `d ≠ c` | active stroke | No effect (blocked). |
-| `extend(cell)` — cell is the other endpoint of `c` | active stroke | Append `cell`. Path is now complete. Emit `pathCompleted(c)`. |
-| `extend(cell)` — cell occupied by colour `d ≠ c` (non-endpoint) | active stroke | Cut: `paths[d]` truncated to end at the cell *before* `cell` (so `cell` and everything after it are removed from `d`). Then append `cell` to `paths[c]`. |
-| `extend(cell)` — cell empty | active stroke | Append `cell`. |
-| `end()` | — | Stroke inactive. If the board differs from the snapshot taken at `begin`, push that snapshot onto the undo stack and `moves += 1`. |
-| `undo()` | undo stack non-empty, no active stroke | Restore the top snapshot (all paths). Timer unaffected. |
-| `restart()` | no active stroke | All paths empty, undo stack cleared, `moves = 0`. Timer keeps running (it is per-attempt, not per-board). `hintUsed` unchanged. |
-| `hint()` | no active stroke, level not won | Let `c` = lowest colour index whose current path, as a set of cells, differs from `solution[c]`. Set `paths[c] = solution[c]`, cutting any other path that occupies a cell of `solution[c]` (same cut rule as `extend`). Push undo snapshot, `moves += 1`, `hintUsed = true`. If no such `c` exists the level is already won (no-op). |
+| Operation                                                             | Precondition                           | Effect                                                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `begin(cell)` — cell is an endpoint of colour `c`                     | —                                      | `paths[c] = [cell]` (any previous path of `c`, complete or not, is discarded). Stroke becomes active for `c`.                                                                                                                                                                                                                         |
+| `begin(cell)` — cell is occupied by colour `c` but is not an endpoint | —                                      | `paths[c]` truncated to end at `cell` (inclusive). Stroke active for `c`.                                                                                                                                                                                                                                                             |
+| `begin(cell)` — cell empty                                            | —                                      | No effect; no active stroke.                                                                                                                                                                                                                                                                                                          |
+| `extend(cell)` — no active stroke                                     | —                                      | No effect.                                                                                                                                                                                                                                                                                                                            |
+| `extend(cell)` — `cell == head(c)`                                    | active stroke                          | No effect.                                                                                                                                                                                                                                                                                                                            |
+| `extend(cell)` — `paths[c]` is complete                               | active stroke                          | No effect (a complete path cannot be extended; the player must `begin` again to redraw).                                                                                                                                                                                                                                              |
+| `extend(cell)` — cell not orthogonally adjacent to `head(c)`          | active stroke                          | If `cell` shares a row or column with `head(c)`, apply `extend` to each intermediate cell in order, stopping at the first one that has no effect. Otherwise no effect. (Handles fast pointer movement that skips cells.)                                                                                                              |
+| `extend(cell)` — cell already in `paths[c]`                           | active stroke                          | Backtrack: `paths[c]` truncated to end at `cell` (inclusive).                                                                                                                                                                                                                                                                         |
+| `extend(cell)` — cell is an endpoint of colour `d ≠ c`                | active stroke                          | No effect (blocked).                                                                                                                                                                                                                                                                                                                  |
+| `extend(cell)` — cell is the other endpoint of `c`                    | active stroke                          | Append `cell`. Path is now complete. Emit `pathCompleted(c)`.                                                                                                                                                                                                                                                                         |
+| `extend(cell)` — cell occupied by colour `d ≠ c` (non-endpoint)       | active stroke                          | Cut: `paths[d]` truncated to end at the cell _before_ `cell` (so `cell` and everything after it are removed from `d`). Then append `cell` to `paths[c]`.                                                                                                                                                                              |
+| `extend(cell)` — cell empty                                           | active stroke                          | Append `cell`.                                                                                                                                                                                                                                                                                                                        |
+| `end()`                                                               | —                                      | Stroke inactive. If the board differs from the snapshot taken at `begin`, push that snapshot onto the undo stack and `moves += 1`.                                                                                                                                                                                                    |
+| `undo()`                                                              | undo stack non-empty, no active stroke | Restore the top snapshot (all paths). Timer unaffected.                                                                                                                                                                                                                                                                               |
+| `restart()`                                                           | no active stroke                       | All paths empty, undo stack cleared, `moves = 0`. Timer keeps running (it is per-attempt, not per-board). `hintUsed` unchanged.                                                                                                                                                                                                       |
+| `hint()`                                                              | no active stroke, level not won        | Let `c` = lowest colour index whose current path, as a set of cells, differs from `solution[c]`. Set `paths[c] = solution[c]`, cutting any other path that occupies a cell of `solution[c]` (same cut rule as `extend`). Push undo snapshot, `moves += 1`, `hintUsed = true`. If no such `c` exists the level is already won (no-op). |
 
 Invariants that must hold after every operation (asserted in tests):
+
 - Every non-empty `paths[c]` starts at an endpoint of `c` and is a chain of distinct orthogonally adjacent cells.
 - No cell belongs to two paths.
 - No path contains an endpoint of another colour.
@@ -149,13 +150,13 @@ Modals (any screen unless noted):
   Paused ──(resume / visible again + tap)──▶ Playing
 ```
 
-| Trigger | From | To | Side effects |
-|---|---|---|---|
-| Level loaded | LevelSelect / Won | Playing | generate or restore level; timer at 0 or restored; timer does **not** start until first `begin` |
-| First `begin` | Playing | Playing | timer starts |
-| `won` becomes true | Playing | Won | stop timer; persist result; play solve animation, then show card |
-| Pause | Playing | Playing + Paused | stop timer; board is hidden behind the modal (prevents timer cheating, matches NYT) |
-| Resume | Paused | Playing | timer resumes |
+| Trigger            | From              | To               | Side effects                                                                                    |
+| ------------------ | ----------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
+| Level loaded       | LevelSelect / Won | Playing          | generate or restore level; timer at 0 or restored; timer does **not** start until first `begin` |
+| First `begin`      | Playing           | Playing          | timer starts                                                                                    |
+| `won` becomes true | Playing           | Won              | stop timer; persist result; play solve animation, then show card                                |
+| Pause              | Playing           | Playing + Paused | stop timer; board is hidden behind the modal (prevents timer cheating, matches NYT)             |
+| Resume             | Paused            | Playing          | timer resumes                                                                                   |
 
 ## 7. Levels & content
 
@@ -169,14 +170,14 @@ Modals (any screen unless noted):
 
 **Difficulty parameters** (`src/generator/difficulty.ts`) — `t = (levelIndex − 1) / 99` is the position within the tier:
 
-| Tier | id | Board | Pairs at L1 → L100 (linear in t, rounded) | Min avg bends/path at L1 → L100 | Unlock |
-|---|---|---|---|---|---|
-| Easy | `easy` | 5×5 | 6 → 4 | 0.5 → 1.5 | always |
-| Normal | `normal` | 6×6 | 7 → 5 | 0.8 → 2.0 | always |
-| Hard | `hard` | 8×8 | 9 → 6 | 1.0 → 2.5 | always |
-| Extreme | `extreme` | 10×10 | 12 → 8 | 1.2 → 3.0 | 20 Hard solved |
-| Expert | `expert` | 12×12 | 14 → 10 | 1.5 → 3.5 | 20 Extreme solved |
-| Master | `master` | 14×14 | 16 → 12 | 1.8 → 4.0 | 20 Expert solved |
+| Tier    | id        | Board | Pairs at L1 → L100 (linear in t, rounded) | Min avg bends/path at L1 → L100 | Unlock            |
+| ------- | --------- | ----- | ----------------------------------------- | ------------------------------- | ----------------- |
+| Easy    | `easy`    | 5×5   | 6 → 4                                     | 0.5 → 1.5                       | always            |
+| Normal  | `normal`  | 6×6   | 7 → 5                                     | 0.8 → 2.0                       | always            |
+| Hard    | `hard`    | 8×8   | 9 → 6                                     | 1.0 → 2.5                       | always            |
+| Extreme | `extreme` | 10×10 | 12 → 8                                    | 1.2 → 3.0                       | 20 Hard solved    |
+| Expert  | `expert`  | 12×12 | 14 → 10                                   | 1.5 → 3.5                       | 20 Extreme solved |
+| Master  | `master`  | 14×14 | 16 → 12                                   | 1.8 → 4.0                       | 20 Expert solved  |
 
 Global generator constants: `MIN_PATH_LENGTH = 3` (a length-2 path means adjacent endpoints, which is trivial), `MAX_PATH_LENGTH = floor(0.5 × size²)`, `PAIR_TOLERANCE = 1`, `MAX_ATTEMPTS_PER_RELAX = 400`, `STOP_PROBABILITY = 0.12`, `WARNSDORFF_PROBABILITY = 0.6`. "Bends" of a path = number of direction changes along it.
 
@@ -242,54 +243,93 @@ Design note: the Warnsdorff bias (prefer the neighbour with the fewest exits) is
 ```ts
 // src/engine/types.ts
 export type Cell = readonly [row: number, col: number];
-export type TierId = 'easy' | 'normal' | 'hard' | 'extreme' | 'expert' | 'master';
+export type TierId =
+  'easy' | 'normal' | 'hard' | 'extreme' | 'expert' | 'master';
 
-export interface LevelPair { color: number; a: Cell; b: Cell; }
+export interface LevelPair {
+  color: number;
+  a: Cell;
+  b: Cell;
+}
 
 export interface Level {
-  id: string;               // "hard-042"
+  id: string; // "hard-042"
   tier: TierId;
-  index: number;            // 1-based, 1..100
-  size: number;             // 5 | 6 | 8 | 10 | 12 | 14
-  pairs: LevelPair[];       // length K, color === array index
-  solution: Cell[][];       // solution[c] is the full path for color c, endpoints included
-  seed: number;             // uint32
+  index: number; // 1-based, 1..100
+  size: number; // 5 | 6 | 8 | 10 | 12 | 14
+  pairs: LevelPair[]; // length K, color === array index
+  solution: Cell[][]; // solution[c] is the full path for color c, endpoints included
+  seed: number; // uint32
   generatorVersion: number;
 }
 
 // src/generator/difficulty.ts
 export interface TierConfig {
   id: TierId;
-  name: string;             // display name
+  name: string; // display name
   size: number;
-  levelCount: number;       // 100
+  levelCount: number; // 100
   pairs: { atFirst: number; atLast: number };
   minAvgBends: { atFirst: number; atLast: number };
   unlock: { tier: TierId; solved: number } | null;
 }
-export const TIERS: readonly TierConfig[] = [ /* table in 7.1 */ ];
+export const TIERS: readonly TierConfig[] = [/* table in 7.1 */];
 ```
 
 Example level (Easy, hand-checked, shown for shape only — real levels come from the generator):
 
 ```json
 {
-  "id": "easy-001", "tier": "easy", "index": 1, "size": 5,
+  "id": "easy-001",
+  "tier": "easy",
+  "index": 1,
+  "size": 5,
   "pairs": [
-    { "color": 0, "a": [0,0], "b": [0,4] },
-    { "color": 1, "a": [1,0], "b": [1,3] },
-    { "color": 2, "a": [2,0], "b": [1,4] },
-    { "color": 3, "a": [3,0], "b": [3,4] },
-    { "color": 4, "a": [4,0], "b": [4,4] }
+    { "color": 0, "a": [0, 0], "b": [0, 4] },
+    { "color": 1, "a": [1, 0], "b": [1, 3] },
+    { "color": 2, "a": [2, 0], "b": [1, 4] },
+    { "color": 3, "a": [3, 0], "b": [3, 4] },
+    { "color": 4, "a": [4, 0], "b": [4, 4] }
   ],
   "solution": [
-    [[0,0],[0,1],[0,2],[0,3],[0,4]],
-    [[1,0],[1,1],[1,2],[1,3]],
-    [[2,0],[2,1],[2,2],[2,3],[2,4],[1,4]],
-    [[3,0],[3,1],[3,2],[3,3],[3,4]],
-    [[4,0],[4,1],[4,2],[4,3],[4,4]]
+    [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+      [0, 4]
+    ],
+    [
+      [1, 0],
+      [1, 1],
+      [1, 2],
+      [1, 3]
+    ],
+    [
+      [2, 0],
+      [2, 1],
+      [2, 2],
+      [2, 3],
+      [2, 4],
+      [1, 4]
+    ],
+    [
+      [3, 0],
+      [3, 1],
+      [3, 2],
+      [3, 3],
+      [3, 4]
+    ],
+    [
+      [4, 0],
+      [4, 1],
+      [4, 2],
+      [4, 3],
+      [4, 4]
+    ]
   ],
-  "seed": 0, "generatorVersion": 1
+  "seed": 0,
+  "generatorVersion": 1
 }
 ```
 
@@ -301,19 +341,19 @@ Example level (Easy, hand-checked, shown for shape only — real levels come fro
 
 ## 8. Input & controls
 
-| Input | Action |
-|---|---|
-| Touch / mouse / pen: press on a cell | `begin(cell)` |
-| Drag | `extend(cell)` for each new cell under the pointer (cell resolved from pointer position with a dead zone of 0 — the full cell area is active) |
-| Release / cancel | `end()` |
-| Keyboard: arrow keys | Move a visible cursor cell (wraps at edges: no; clamps) |
-| Enter / Space | If no stroke active: `begin(cursor)`. If active: `end()`. |
-| Arrow keys while stroke active | Move cursor **and** `extend(cursor)` |
-| Escape | If stroke active: `end()`. Else toggle Paused. |
-| U or Ctrl/Cmd+Z | `undo()` |
-| R | `restart()` (with confirm if any path exists) |
-| H | `hint()` |
-| Tab / Shift+Tab | Standard focus traversal through toolbar and dialogs |
+| Input                                | Action                                                                                                                                        |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Touch / mouse / pen: press on a cell | `begin(cell)`                                                                                                                                 |
+| Drag                                 | `extend(cell)` for each new cell under the pointer (cell resolved from pointer position with a dead zone of 0 — the full cell area is active) |
+| Release / cancel                     | `end()`                                                                                                                                       |
+| Keyboard: arrow keys                 | Move a visible cursor cell (wraps at edges: no; clamps)                                                                                       |
+| Enter / Space                        | If no stroke active: `begin(cursor)`. If active: `end()`.                                                                                     |
+| Arrow keys while stroke active       | Move cursor **and** `extend(cursor)`                                                                                                          |
+| Escape                               | If stroke active: `end()`. Else toggle Paused.                                                                                                |
+| U or Ctrl/Cmd+Z                      | `undo()`                                                                                                                                      |
+| R                                    | `restart()` (with confirm if any path exists)                                                                                                 |
+| H                                    | `hint()`                                                                                                                                      |
+| Tab / Shift+Tab                      | Standard focus traversal through toolbar and dialogs                                                                                          |
 
 Pointer events use the Pointer Events API with `touch-action: none` on the canvas. Keyboard cursor is only rendered after the first keyboard interaction (avoids clutter for touch users). All buttons have ≥ 44×44 px hit areas and `aria-label`s. The board canvas has `role="application"` and an `aria-label` describing the level; the HUD counters are `aria-live="polite"`.
 
@@ -324,11 +364,13 @@ Visual language: white page, near-black text, one serif headline face, one sans 
 ### Screen inventory
 
 **Home**
+
 - Header: `APP_NAME` in the serif face (32 px), small tagline "Connect the dots. Fill the board." below.
 - Vertical list of six tier rows. Each row: tier name (sans, 18 px, medium), board size ("8×8", secondary text), progress "23/100" right-aligned, a 2 px progress bar underneath spanning the row. Locked rows are at 40% opacity with a lock glyph and one line: "Solve 20 Hard levels to unlock" (from config, never hard-coded).
 - Footer row: "How to play" and a gear icon (Settings), both text buttons.
 
 **LevelSelect(tier)**
+
 - Header: back chevron, "Hard · 8×8" centred, "23/100" right.
 - Grid of 100 square tiles, 5 columns, scrollable. Tile states:
   - unsolved: light-gray fill, dark number;
@@ -338,20 +380,24 @@ Visual language: white page, near-black text, one serif headline face, one sans 
 - Tapping a tile opens Playing.
 
 **Playing**
+
 - Top bar: back chevron (left), "Hard · Level 42" (centre, sans 16 px), pause icon (right).
 - Board: centred canvas. `cellPx = floor(min(viewportWidth − 32, viewportHeight − 220) / size)`, clamped to `[20, 72]`. The board is never scrollable; it always fits.
 - Stats row directly under the board, secondary text 14 px, three items separated by "·": `Lines 3/8 · Filled 62% · 1:24`.
 - Toolbar under the stats: three icon+label buttons — Undo, Hint, Restart. Disabled state at 35% opacity (Undo when stack empty; all three during an active stroke).
 
 **Paused** (modal over Playing; board hidden)
+
 - "Paused" (serif 28 px), elapsed time, buttons: Resume (primary pill), Restart, Level list, Settings, How to play.
 
 **Won** (modal card over the solved board, which stays visible behind at 100% opacity)
+
 - Heading: "Solved" (serif 28 px). If Perfect: "Perfect" replaces it, with a one-line explanation below ("No hints, every line drawn once").
 - Rows: "Time 1:24", "Best 1:02" (or "New best" badge when improved), "Hint used" if applicable.
 - Buttons: Next level (primary pill, full width), Replay, Level list (text buttons).
 
 **Settings** (modal, from Home or Paused)
+
 - Theme: System / Light / Dark (segmented control)
 - Sound: on/off
 - Haptics: on/off (hidden if `navigator.vibrate` is unavailable)
@@ -361,30 +407,34 @@ Visual language: white page, near-black text, one serif headline face, one sans 
 - Version string and `GENERATOR_VERSION` in small secondary text at the bottom.
 
 **HowToPlay** (modal)
+
 - Three short paragraphs with a tiny static illustration drawn by the same board renderer: (1) drag between matching dots, (2) lines can't cross — drawing over a line cuts it, (3) fill every cell to solve.
 
 ### HUD elements during play
+
 Lines counter, coverage percentage, timer, undo/hint/restart availability. Nothing else.
 
 ### Feedback
 
-| Event | Visual | Sound (synth) | Haptic |
-|---|---|---|---|
-| Stroke begins on endpoint | Endpoint scales to 1.15× for 120 ms | none | none |
-| Cell appended | Path segment grows with 60 ms ease-out; cell tint fades in | none | none |
-| Path completed | Both endpoints pulse once (1.0→1.2→1.0, 200 ms) | two-note rising blip (C5→E5, 80 ms each, sine) | `vibrate(10)` |
-| Path cut by another colour | Removed segment fades out over 120 ms | soft low tick (120 Hz, 40 ms, triangle) | none |
-| Blocked move (foreign endpoint) | Nothing (silent rejection) | none | none |
-| Win | Paths brighten to 100% alpha in colour order, 40 ms stagger; then card slides up 200 ms | 4-note arpeggio (C5 E5 G5 C6, 90 ms each) | `vibrate([10, 40, 20])` |
-| Undo / restart | Paths removed instantly (no animation) | UI tick (1 kHz, 20 ms) | none |
-| Hint | Solution path draws in cell by cell, 30 ms per cell | same as path completed | same |
+| Event                           | Visual                                                                                  | Sound (synth)                                  | Haptic                  |
+| ------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------- |
+| Stroke begins on endpoint       | Endpoint scales to 1.15× for 120 ms                                                     | none                                           | none                    |
+| Cell appended                   | Path segment grows with 60 ms ease-out; cell tint fades in                              | none                                           | none                    |
+| Path completed                  | Both endpoints pulse once (1.0→1.2→1.0, 200 ms)                                         | two-note rising blip (C5→E5, 80 ms each, sine) | `vibrate(10)`           |
+| Path cut by another colour      | Removed segment fades out over 120 ms                                                   | soft low tick (120 Hz, 40 ms, triangle)        | none                    |
+| Blocked move (foreign endpoint) | Nothing (silent rejection)                                                              | none                                           | none                    |
+| Win                             | Paths brighten to 100% alpha in colour order, 40 ms stagger; then card slides up 200 ms | 4-note arpeggio (C5 E5 G5 C6, 90 ms each)      | `vibrate([10, 40, 20])` |
+| Undo / restart                  | Paths removed instantly (no animation)                                                  | UI tick (1 kHz, 20 ms)                         | none                    |
+| Hint                            | Solution path draws in cell by cell, 30 ms per cell                                     | same as path completed                         | same                    |
 
 With reduced motion on: all durations become 0 and the win stagger is removed; the card appears instantly.
 
 ### Undo / hint / restart / pause behaviour
+
 As defined in 5.2 and 6. Restart shows a confirm only if at least one path cell exists beyond endpoints. Pause hides the board.
 
 ### Settings
+
 Listed above; persisted immediately on change (11.2).
 
 ## 10. Art & audio direction
@@ -394,16 +444,17 @@ Listed above; persisted immediately on change (11.2).
 
 **Path palette** (16 colours; index = colour id; ordered so that any prefix is as mutually distinct as possible; identical in light and dark themes):
 
-| # | Hex | # | Hex | # | Hex | # | Hex |
-|---|---|---|---|---|---|---|---|
-| 0 | `#D62828` red | 4 | `#8338EC` purple | 8 | `#2A9D8F` teal | 12 | `#A0522D` sienna |
-| 1 | `#118AB2` blue | 5 | `#FF7A00` orange | 9 | `#FF3D8A` pink | 13 | `#48CAE4` sky |
-| 2 | `#F2B705` yellow | 6 | `#06D6A0` mint | 10 | `#6A4C93` violet | 14 | `#8C8C8C` gray |
-| 3 | `#3FA34D` green | 7 | `#073B4C` navy | 11 | `#B5E048` lime | 15 | `#F4A3B5` blush |
+| #   | Hex              | #   | Hex              | #   | Hex              | #   | Hex              |
+| --- | ---------------- | --- | ---------------- | --- | ---------------- | --- | ---------------- |
+| 0   | `#D62828` red    | 4   | `#8338EC` purple | 8   | `#2A9D8F` teal   | 12  | `#A0522D` sienna |
+| 1   | `#118AB2` blue   | 5   | `#FF7A00` orange | 9   | `#FF3D8A` pink   | 13  | `#48CAE4` sky    |
+| 2   | `#F2B705` yellow | 6   | `#06D6A0` mint   | 10  | `#6A4C93` violet | 14  | `#8C8C8C` gray   |
+| 3   | `#3FA34D` green  | 7   | `#073B4C` navy   | 11  | `#B5E048` lime   | 15  | `#F4A3B5` blush  |
 
 Colour-blind labels mode: each endpoint shows its colour index + 1 as a numeral (white or black, whichever has ≥ 4.5:1 contrast against the colour) in a 12 px bold sans; the numeral is drawn only on endpoints, not along paths. Palette is limited to 16 because Master's maximum pair count is 16.
 
 **Board rendering** (Canvas, devicePixelRatio-aware):
+
 - Cell: filled with cell background, 1 px grid line between cells, board has a 2 px outer border in hairline colour and 8 px corner radius.
 - Endpoint: filled circle, diameter `0.62 × cellPx`, centred.
 - Path: polyline through cell centres, stroke width `0.36 × cellPx`, round caps and joins, alpha 0.92 (1.0 for the active stroke).
@@ -421,16 +472,16 @@ Colour-blind labels mode: each endpoint shows its colour index + 1 as a numeral 
 
 ### 11.1 Architecture
 
-| Module | Responsibility | Dependencies |
-|---|---|---|
-| `src/engine/` | Pure game rules: types, `Engine` state and operations (5.2), win/coverage queries, undo stack. Zero DOM, zero randomness, fully unit-tested. | none |
-| `src/generator/` | `prng.ts` (fnv1a32, mulberry32), `difficulty.ts` (TIERS), `generate.ts` (7.1), `validate.ts` (asserts a level's solution replays to Won through the engine). Pure. | engine (validate only) |
-| `src/render/` | `BoardRenderer` (Canvas draw of a read-only engine state + animation state), `layout.ts` (cell size, pixel↔cell mapping), `theme.ts` (palette, CSS variable sync). | engine (types only) |
-| `src/input/` | `pointer.ts` maps Pointer Events on the canvas to `begin/extend/end`; `keyboard.ts` maps keys to engine ops and the cursor. | engine, render (layout) |
-| `src/app/` | `state.ts` (screen + modal state machine of section 6), `App.ts` (bootstrap, routing, wiring), `screens/` (Home, LevelSelect, Play), `modals/` (Paused, Won, Settings, HowToPlay, ConfirmReset), `progress.ts` (unlock rules, best times), `strings.ts`, `config.ts` (`APP_NAME`, version), `icons.ts`. DOM only. | all of the above |
-| `src/storage/` | `persistence.ts`: typed load/save for the three keys, schema version, safe parsing with fallback to defaults. | none |
-| `src/audio/` | `sfx.ts`, `haptics.ts`. | none |
-| `src/styles/` | `base.css` (reset, tokens as CSS variables, light/dark), `screens.css`. | — |
+| Module           | Responsibility                                                                                                                                                                                                                                                                                                    | Dependencies            |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `src/engine/`    | Pure game rules: types, `Engine` state and operations (5.2), win/coverage queries, undo stack. Zero DOM, zero randomness, fully unit-tested.                                                                                                                                                                      | none                    |
+| `src/generator/` | `prng.ts` (fnv1a32, mulberry32), `difficulty.ts` (TIERS), `generate.ts` (7.1), `validate.ts` (asserts a level's solution replays to Won through the engine). Pure.                                                                                                                                                | engine (validate only)  |
+| `src/render/`    | `BoardRenderer` (Canvas draw of a read-only engine state + animation state), `layout.ts` (cell size, pixel↔cell mapping), `theme.ts` (palette, CSS variable sync).                                                                                                                                                | engine (types only)     |
+| `src/input/`     | `pointer.ts` maps Pointer Events on the canvas to `begin/extend/end`; `keyboard.ts` maps keys to engine ops and the cursor.                                                                                                                                                                                       | engine, render (layout) |
+| `src/app/`       | `state.ts` (screen + modal state machine of section 6), `App.ts` (bootstrap, routing, wiring), `screens/` (Home, LevelSelect, Play), `modals/` (Paused, Won, Settings, HowToPlay, ConfirmReset), `progress.ts` (unlock rules, best times), `strings.ts`, `config.ts` (`APP_NAME`, version), `icons.ts`. DOM only. | all of the above        |
+| `src/storage/`   | `persistence.ts`: typed load/save for the three keys, schema version, safe parsing with fallback to defaults.                                                                                                                                                                                                     | none                    |
+| `src/audio/`     | `sfx.ts`, `haptics.ts`.                                                                                                                                                                                                                                                                                           | none                    |
+| `src/styles/`    | `base.css` (reset, tokens as CSS variables, light/dark), `screens.css`.                                                                                                                                                                                                                                           | —                       |
 
 Rules: `engine` and `generator` must have no imports from `render`, `input`, `app`, or the DOM. The renderer is stateless with respect to game rules — it reads the engine state each frame. Rendering is on demand (redraw on state change) plus a `requestAnimationFrame` loop that runs only while an animation is active.
 
@@ -438,11 +489,11 @@ Rules: `engine` and `generator` must have no imports from `render`, `input`, `ap
 
 localStorage, JSON, all under the `colorlink:v1:` prefix. `v1` is the schema version; a mismatch on load resets that key to defaults (never crashes).
 
-| Key | Shape | Written when |
-|---|---|---|
-| `colorlink:v1:progress` | `{ tiers: Record<TierId, { solved: Record<number, { bestMs: number; hint: boolean; perfect: boolean; at: string }> }> }` | on every level completion |
-| `colorlink:v1:settings` | `{ theme: 'system'\|'light'\|'dark'; sound: boolean; haptics: boolean; colorBlind: boolean; reducedMotion: 'system'\|'on'\|'off' }` | on every settings change |
-| `colorlink:v1:inProgress` | `{ levelId: string; paths: Cell[][]; elapsedMs: number; moves: number; hintUsed: boolean } \| null` | on every `end()`, `undo`, `restart`, `hint`, pause; cleared on win or when leaving the level via back |
+| Key                       | Shape                                                                                                                               | Written when                                                                                          |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `colorlink:v1:progress`   | `{ tiers: Record<TierId, { solved: Record<number, { bestMs: number; hint: boolean; perfect: boolean; at: string }> }> }`            | on every level completion                                                                             |
+| `colorlink:v1:settings`   | `{ theme: 'system'\|'light'\|'dark'; sound: boolean; haptics: boolean; colorBlind: boolean; reducedMotion: 'system'\|'on'\|'off' }` | on every settings change                                                                              |
+| `colorlink:v1:inProgress` | `{ levelId: string; paths: Cell[][]; elapsedMs: number; moves: number; hintUsed: boolean } \| null`                                 | on every `end()`, `undo`, `restart`, `hint`, pause; cleared on win or when leaving the level via back |
 
 Unlock rule (`progress.ts`): `isUnlocked(tier) = tier.unlock == null || count(solved in tier.unlock.tier) ≥ tier.unlock.solved`.
 
@@ -455,12 +506,12 @@ Unlock rule (`progress.ts`): `isUnlocked(tier) = tier.unlock == null || count(so
 
 ### 11.4 Dependencies
 
-| Package | Version | Purpose | Justification |
-|---|---|---|---|
-| `vite` | latest stable | dev server, bundler | default stack |
-| `typescript` | ^5 | language, `strict: true` | default stack |
-| `vitest` | latest stable | unit tests | default test runner for Vite projects |
-| `prettier` (dev) | latest stable | formatting | zero-config; one `.prettierrc` |
+| Package          | Version       | Purpose                  | Justification                         |
+| ---------------- | ------------- | ------------------------ | ------------------------------------- |
+| `vite`           | latest stable | dev server, bundler      | default stack                         |
+| `typescript`     | ^5            | language, `strict: true` | default stack                         |
+| `vitest`         | latest stable | unit tests               | default test runner for Vite projects |
+| `prettier` (dev) | latest stable | formatting               | zero-config; one `.prettierrc`        |
 
 Nothing else. No UI framework, no state library, no canvas library, no audio library, no icon package. `vite-plugin-pwa` is listed under 14.2 and must not be added without asking.
 
@@ -493,6 +544,7 @@ Each item is verified either by `npm test` (T) or by running the app (R).
 ### Unit tests (Vitest)
 
 `tests/engine/`
+
 - `begin.test.ts`: begin on endpoint clears existing path; begin on mid-path truncates; begin on empty is a no-op.
 - `extend.test.ts`: append empty; backtrack to earlier cell truncates; blocked by foreign endpoint; completes on twin endpoint and refuses further extension; cut removes tail of other colour and appends; non-adjacent same-row/column interpolates and stops at first rejection; non-adjacent diagonal is a no-op.
 - `win.test.ts`: all connected + full → won; all connected + one empty → not won; coverage counts endpoints.
@@ -501,6 +553,7 @@ Each item is verified either by `npm test` (T) or by running the app (R).
 - `invariants.test.ts`: property test — 10,000 seeded random ops per board size, invariants asserted after each.
 
 `tests/generator/`
+
 - `prng.test.ts`: mulberry32 known-answer vector (first 5 outputs for seed 1); fnv1a32 known-answer for `"v1|easy|1"`.
 - `determinism.test.ts`: same inputs → deep-equal; `GENERATOR_VERSION` change → different level.
 - `all-levels.test.ts`: generates all 600; asserts criteria 3, 4, 5; records per-tier relax-level histogram to console.
@@ -508,9 +561,11 @@ Each item is verified either by `npm test` (T) or by running the app (R).
 - `difficulty.test.ts`: TIERS is in ladder order, sizes strictly increasing, pairs ≤ 16, unlock references point to the previous tier only.
 
 `tests/storage/`
+
 - `persistence.test.ts`: round-trip each key; corrupt JSON → defaults; wrong schema version → defaults.
 
 `tests/app/`
+
 - `progress.test.ts`: unlock logic; best-time only updates when lower; perfect flag requires `moves == K && !hintUsed`.
 
 ### Manual test script
@@ -532,6 +587,7 @@ Each item is verified either by `npm test` (T) or by running the app (R).
 15. Reset progress; verify Home is back to fresh state.
 
 ### Known tricky scenarios to verify
+
 - Fast diagonal flick across the board (no cells should be skipped illegally; diagonal moves are ignored, straight ones interpolate).
 - Winning mid-drag: the last cell filled while the pointer is still down must trigger Won and ignore further movement.
 - Cutting a path at its first cell after the endpoint (the endpoint stays, the path becomes length 1).
@@ -542,9 +598,11 @@ Each item is verified either by `npm test` (T) or by running the app (R).
 ## 14. Scope
 
 ### 14.1 MVP (this build)
+
 Everything in sections 5–13 and phases 0–5 of section 17: six tiers, 600 generated levels, full drag/keyboard input, undo/hint/restart/pause, Home/LevelSelect/Play/Won/Paused/Settings/HowToPlay, persistence and resume, dark mode, colour-blind labels, reduced motion, synthesised sound and haptics, full test suite.
 
 ### 14.2 Later / stretch
+
 - Installable PWA with offline caching (`vite-plugin-pwa`, manifest, icons) — phase 6.
 - Solution-uniqueness filter in the generator for Easy–Hard (solver is cheap at ≤ 8×8), with `GENERATOR_VERSION` bump.
 - Build-time level pre-baking script (`scripts/bake-levels.ts`) producing `public/levels.json` as a fallback for low-end devices.
@@ -554,6 +612,7 @@ Everything in sections 5–13 and phases 0–5 of section 17: six tiers, 600 gen
 - Optional "Hell" tier (16×16) if Tob wants it.
 
 ### 14.3 Explicitly out of scope
+
 Accounts, cloud sync, leaderboards, ads, in-app purchases, coins, timers as a fail condition, sequential level locks within a tier, native app wrappers, hexagonal or non-square boards, bridges/walls/special cells.
 
 ## 15. Open questions
@@ -669,41 +728,49 @@ Paste this into Claude Code in the empty `color-link/` folder (after copying the
 Each phase has a scope, a definition of done (DoD), and a milestone name for the commit and the report. Estimated effort is for a single Claude Code session; phases 0–5 are MVP.
 
 ### Phase 0 — Scaffold
+
 **Scope**: run the commands in 16.2; create the folder tree in 16.1 with empty modules; `index.html` with `<div id="app">` and a `<canvas>` placeholder; `base.css` with the neutral tokens from section 10 as CSS variables for light and dark (`prefers-color-scheme` plus a `data-theme` attribute override); `strings.ts` and `config.ts` with `APP_NAME` and `APP_VERSION`; a trivial passing test; `CLAUDE.md`.
 **DoD**: `npm run dev` shows the app name on a white page; `npm test` passes; `npm run build` succeeds.
 **Milestone M0**: "scaffold".
 
 ### Phase 1 — Rules engine (pure)
+
 **Scope**: `engine/types.ts`, `engine/engine.ts` implementing every row of the 5.2 table, `engine/queries.ts` (won, coverage, completed count), undo stack, hint. Write the tests in 13 `tests/engine/` first or alongside; include the invariant property test.
 **DoD**: all `tests/engine/*` pass; engine has no DOM imports; a hand-written 5×5 level (the example in 7.2) replays to `won == true`.
 **Milestone M1**: "rules engine green".
 
 ### Phase 2 — Generator
+
 **Scope**: `prng.ts` with known-answer tests, `difficulty.ts` with the TIERS table, `generate.ts` per 7.1, `validate.ts` (replay through engine). Add `tests/generator/*` including the all-600-levels test with timing and the relax-level histogram.
 **DoD**: all 600 levels generate, validate, and meet acceptance criteria 2–5. If any tier's relax-2 rate exceeds 5%, tune `STOP_PROBABILITY` / `WARNSDORFF_PROBABILITY` (per tier if needed) and report the final numbers.
 **Milestone M2**: "600 levels validated".
 
 ### Phase 3 — Board renderer & input
+
 **Scope**: `render/layout.ts` (cell size formula from section 9, pixel↔cell mapping, DPR handling), `render/BoardRenderer.ts` (grid, endpoints, paths, tints, cursor, animation state hooks), `input/pointer.ts`, `input/keyboard.ts`. A temporary dev harness in `main.ts` that loads `generate(TIERS[2], 1)` and renders it.
 **DoD**: a Hard level is fully playable in the browser with mouse, touch (DevTools device mode), and keyboard; cut/backtrack/complete behave per 5.2; console logs `WON` when solved; the board fits on 360×640 for size 14.
 **Milestone M3**: "playable level".
 
 ### Phase 4 — Screens, state machine, persistence
+
 **Scope**: `app/state.ts` (section 6), `app/App.ts`, Home, LevelSelect, Play (top bar, stats row, toolbar, timer), Paused, Won, Settings, HowToPlay, ConfirmReset; `app/progress.ts` (unlocks, best times, perfect); `storage/persistence.ts` with the three keys and schema guards; in-progress resume on boot; `visibilitychange` auto-pause. Remove the phase-3 dev harness.
 **DoD**: the full core loop of section 4 works end to end; progress and in-progress board survive a reload; tier unlock works; `tests/storage/*` and `tests/app/*` pass; acceptance criteria 8–14 pass.
 **Milestone M4**: "full loop + persistence".
 
 ### Phase 5 — Polish, accessibility, audio
+
 **Scope**: animations from the section 9 feedback table with reduced-motion switch; `audio/sfx.ts` and `audio/haptics.ts`; colour-blind labels; dark theme QA; inline SVG icons; focus styles and `aria` attributes; keyboard-only pass; favicon; Lighthouse run.
 **DoD**: acceptance criteria 15–19 pass; the manual test script in 13 runs clean; a final report lists every item of section 12 with pass/fail.
 **Milestone M5**: "MVP complete".
 
-### Phase 6 — PWA & release *(stretch, only if Tob asks)*
+### Phase 6 — PWA & release _(stretch, only if Tob asks)_
+
 **Scope**: `vite-plugin-pwa` (ask first), manifest, 192/512 icons, offline caching of the app shell, `README.md` with deploy instructions for a static host (GitHub Pages or Netlify).
 **DoD**: installable on Android Chrome and iOS Safari; works offline after first load; Lighthouse PWA checks pass.
 **Milestone M6**: "installable".
 
 ### Reporting format at each milestone
+
 ```
 ## Phase N — <milestone>
 Built: <3–6 bullets>
@@ -714,4 +781,5 @@ Next: Phase N+1
 ```
 
 ## Changelog
+
 - v1.0 — initial spec

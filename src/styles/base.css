@@ -56,9 +56,11 @@ ol {
   --on-accent: #ffffff;
   --scrim: rgba(255, 255, 255, 0.92);
 
-  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
+  --font-serif:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
 
   --space-1: 4px;
   --space-2: 8px;
