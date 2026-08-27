@@ -61,7 +61,7 @@ const FOCUSABLE =
 
 export function focusableWithin(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (node) => node.offsetParent !== null || node === document.activeElement,
+    (node) => !node.hidden && node.getAttribute('aria-hidden') !== 'true',
   );
 }
 

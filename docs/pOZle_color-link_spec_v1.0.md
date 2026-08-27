@@ -783,3 +783,24 @@ Next: Phase N+1
 ## Changelog
 
 - v1.0 — initial spec
+- v1.0-as-built — MVP delivered (phases 0–5). `GENERATOR_VERSION` is unchanged at 1, so every level is exactly as this spec defines. The notes below record where the build diverged from the letter of the spec, so later work does not "fix" them back.
+
+### As-built notes
+
+**Generator stop probability is per level, not the flat 0.12 (section 7.1).** With `STOP_PROBABILITY = 0.12` the generator could not produce Master levels at all (1200 attempts, no candidate) and missed the pair target badly at both ends of the ladder: one probability cannot serve a 5×5 board wanting 4-cell paths and a 14×14 board wanting 16-cell ones. Section 7.1 sanctions tuning this constant when acceptance is poor, so it is now derived from the average path length each level needs, with a board-size correction for walks that stop early because they run out of neighbours. `WARNSDORFF_PROBABILITY` went 0.6 → 0.95 by measurement. Result: all 600 levels are accepted at `relax = 0`, in 225 ms total.
+
+**A path holding only its own start endpoint is stored as no path.** Otherwise pressing an endpoint and releasing without dragging counted as a move, consumed an undo slot, and cost the player the "Perfect" badge, even though the board looked untouched. Only an in-flight stroke sits at length 1.
+
+**`hint()` starts the timer.** Section 6 starts it on the first `begin`, which would record 0:00 for a level solved entirely with hints.
+
+**`pathCut` events carry the removed cells,** so the renderer can fade exactly the segment that was cut (section 9 feedback table).
+
+**Dependencies (section 11.4): `jsdom` added, dev-only.** Section 16.2 already anticipates it ("screen tests, if any, may opt into `jsdom` per file"). It earns its place: the one bug that escaped the unit suite was a DOM-attribute bug — the element builder wrote `aria-checked` as an empty string for `true` and dropped it entirely for `false`, so the Settings switches silently never toggled. No effect on the shipped bundle.
+
+**Repository layout (section 16.1): `scripts/verify/` added.** `npm run verify` starts a dev server, drives a headless Chromium-based browser through the app, and checks the acceptance criteria in section 12 that can only be judged by running it. 89 checks in about 55 s, with no npm dependency beyond Node's built-in `fetch` and `WebSocket`.
+
+**`index.html` drops `maximum-scale=1.0, user-scalable=no`.** Blocking zoom fails an accessibility audit, and `touch-action: none` on the canvas already stops the board being panned or double-tap-zoomed during a drag.
+
+**Home tier rows carry no `aria-label`.** A label that does not contain the row's own visible text breaks voice control and fails the axe `label-content-name-mismatch` rule. The row's content already reads "Easy 5×5 0/100".
+
+**Verified at delivery:** 175 unit tests, 89 browser checks, all 600 levels generated and replayed, and Lighthouse (mobile) on the production build at 100 accessibility, 100 performance, 100 best practices.

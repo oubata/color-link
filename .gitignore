@@ -5,3 +5,5 @@ dist-ssr
 .DS_Store
 .vite
 coverage
+scripts/verify/screenshots
+scripts/verify/.browser-profile
