@@ -6,6 +6,19 @@ export interface ElementProps {
   on?: Record<string, (event: Event) => void>;
 }
 
+/**
+ * How an attribute value reaches the DOM. Booleans are stringified rather than
+ * treated as HTML boolean attributes, because `aria-checked="false"` carries
+ * meaning and must not be dropped the way `disabled={false}` would be.
+ * Returns null for attributes that should not be set at all.
+ */
+export function attrValue(
+  value: string | number | boolean | null,
+): string | null {
+  if (value === null) return null;
+  return String(value);
+}
+
 /** Terse element builder, so the screens read as structure rather than plumbing. */
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -18,8 +31,8 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   if (props.html !== undefined) node.innerHTML = props.html;
 
   for (const [name, value] of Object.entries(props.attrs ?? {})) {
-    if (value === null || value === false) continue;
-    node.setAttribute(name, value === true ? '' : String(value));
+    const attribute = attrValue(value);
+    if (attribute !== null) node.setAttribute(name, attribute);
   }
   for (const [name, handler] of Object.entries(props.on ?? {})) {
     node.addEventListener(name, handler);

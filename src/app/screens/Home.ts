@@ -73,15 +73,14 @@ function tierRow(tier: TierConfig, props: HomeProps): HTMLElement {
     );
   }
 
+  // No aria-label: the row's own text already reads "Easy 5×5 0/100", and an
+  // added label that does not contain the visible text confuses voice control.
   const inner = unlocked
     ? el(
         'button',
         {
           class: 'tier__button',
-          attrs: {
-            type: 'button',
-            'aria-label': `${tier.name}, ${S.tierSize(tier.size)}, ${S.tierProgress(solved, tier.levelCount)}`,
-          },
+          attrs: { type: 'button' },
           on: { click: () => props.onTier(tier.id) },
         },
         content,
