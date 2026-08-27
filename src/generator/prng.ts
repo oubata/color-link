@@ -1,8 +1,8 @@
 /**
  * Deterministic pseudo-randomness for the level generator.
  *
- * `Math.random` is forbidden anywhere under `src/generator/**` (spec 7.1) and a
- * unit test greps the sources to keep it that way.
+ * The platform's own random source is forbidden anywhere under
+ * `src/generator/**` (spec 7.1); a unit test greps the sources for it.
  */
 
 /** FNV-1a, 32-bit, returned as an unsigned integer. */
