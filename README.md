@@ -5,6 +5,9 @@ lines may not cross, and the board is only solved when every cell is covered.
 Six tiers from a 5×5 warm-up to a 14×14 Master board, 100 levels each,
 generated deterministically so every player gets the same level 42.
 
+**Play it: [oubata.github.io/color-link](https://oubata.github.io/color-link/)**
+Installable on Android, iOS and desktop; works offline once loaded.
+
 The design and rules live in [`docs/pOZle_color-link_spec_v1.0.md`](docs/pOZle_color-link_spec_v1.0.md),
 which is the source of truth for this build.
 
@@ -58,19 +61,29 @@ npm run build
 npx netlify deploy --prod --dir=dist
 ```
 
-### GitHub Pages
+### GitHub Pages — already set up
+
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds and
+publishes on every push to `main`. It runs the unit tests first and will not
+publish a red build. Nothing to do but push:
 
 ```bash
-npm run build
-npx gh-pages -d dist
+git push
 ```
 
-Then in the repository settings, set Pages to serve from the `gh-pages` branch.
-The relative base means a project site at `https://<user>.github.io/<repo>/`
-works with no extra configuration.
+Pages is configured with GitHub Actions as its source. The relative base means
+the project site at `https://oubata.github.io/color-link/` works with no extra
+configuration.
 
-To deploy from Actions instead, build and upload `dist/` with
-`actions/upload-pages-artifact`.
+After a deploy, check the live site rather than trusting the green tick:
+
+```bash
+npm run verify:pwa -- --url=https://oubata.github.io/color-link/
+```
+
+That runs the manifest, icon, service-worker and offline checks against the
+deployed URL. The one check it skips is stopping the origin server, which is
+not ours to stop; offline there rests on network emulation alone.
 
 ### Any other static host
 
