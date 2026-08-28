@@ -11,8 +11,8 @@ import {
 /** Criteria 15, 16 and 17: keyboard-only play, settings that stick, no network. */
 export default {
   name: 'keyboard and accessibility',
-  async run({ page, url, shot }) {
-    const { results, check } = createChecks();
+  async run({ page, url, shot, results }) {
+    const { check } = createChecks(results);
     await freshStart(page, url);
 
     // ---- Reaching a board with the keyboard alone (criterion 15) --------

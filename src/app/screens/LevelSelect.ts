@@ -3,7 +3,12 @@ import type { Progress } from '../../storage/persistence';
 import type { TierId } from '../../engine/types';
 import { el, type View } from '../dom';
 import { ICONS } from '../icons';
-import { firstUnsolved, solvedCount, solvedRecord } from '../progress';
+import {
+  firstUnsolved,
+  isLevelUnlocked,
+  solvedCount,
+  solvedRecord,
+} from '../progress';
 import { S } from '../strings';
 
 export interface LevelSelectProps {
@@ -53,21 +58,34 @@ function tile(
   props: LevelSelectProps,
 ): HTMLElement {
   const record = solvedRecord(props.progress, tier.id, index);
+  const unlocked = isLevelUnlocked(props.progress, tier.id, index);
+
   const classes = ['level-tile'];
   if (record && record.hint) classes.push('level-tile--hinted');
   else if (record) classes.push('level-tile--solved');
-  if (!record && index === suggested) classes.push('level-tile--suggested');
+  else if (!unlocked) classes.push('level-tile--locked');
+  if (unlocked && !record && index === suggested) {
+    classes.push('level-tile--suggested');
+  }
 
   const label = record
     ? `${S.levelTileLabel(index)}, solved${record.hint ? ' with a hint' : ''}`
-    : S.levelTileLabel(index);
+    : unlocked
+      ? S.levelTileLabel(index)
+      : S.levelLockedLabel(index);
 
+  // A locked tile is a disabled button: dimmed, unclickable, and skipped by
+  // Tab rather than trapping a keyboard user on something that does nothing.
   const button = el(
     'button',
     {
       class: classes.join(' '),
-      attrs: { type: 'button', 'aria-label': label },
-      on: { click: () => props.onLevel(index) },
+      attrs: {
+        type: 'button',
+        'aria-label': label,
+        ...(unlocked ? {} : { disabled: 'true' }),
+      },
+      ...(unlocked ? { on: { click: () => props.onLevel(index) } } : {}),
     },
     [el('span', { class: 'level-tile__number', text: String(index) })],
   );

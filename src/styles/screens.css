@@ -248,6 +248,12 @@
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
+.level-tile--locked {
+  background: transparent;
+  color: var(--disabled);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
 .level-tile__dot {
   position: absolute;
   top: 6px;

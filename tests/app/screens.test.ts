@@ -186,9 +186,73 @@ describe('LevelSelect (spec 9, criterion 9)', () => {
 
   it('calls back with the level that was tapped', () => {
     const picked: number[] = [];
-    const root = levels(defaultProgress(), (index) => picked.push(index));
+    const root = levels(withSolves('easy', 41), (index) => picked.push(index));
     root.querySelectorAll<HTMLButtonElement>('.level-tile')[41]?.click();
     expect(picked).toEqual([42]);
+    root.remove();
+  });
+
+  it('opens only level 1 on a fresh profile', () => {
+    const root = levels(defaultProgress());
+    const open = [
+      ...root.querySelectorAll<HTMLButtonElement>('.level-tile'),
+    ].filter((t) => !t.disabled);
+    expect(open.map((t) => t.textContent)).toEqual(['1']);
+    root.remove();
+  });
+
+  it('opens the next level as each one is solved', () => {
+    const root = levels(withSolves('easy', 3));
+    const tiles = [...root.querySelectorAll<HTMLButtonElement>('.level-tile')];
+    expect(tiles.slice(0, 4).map((t) => t.disabled)).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(tiles[4]?.disabled).toBe(true);
+    root.remove();
+  });
+
+  it('will not open a locked level when tapped', () => {
+    const picked: number[] = [];
+    const root = levels(defaultProgress(), (index) => picked.push(index));
+    root.querySelectorAll<HTMLButtonElement>('.level-tile')[41]?.click();
+    expect(picked).toEqual([]);
+    root.remove();
+  });
+
+  it('says why a locked level is locked', () => {
+    const root = levels(defaultProgress());
+    expect(
+      root.querySelectorAll('.level-tile')[4]?.getAttribute('aria-label'),
+    ).toBe('Level 5, locked. Solve level 4 first.');
+    root.remove();
+  });
+
+  it('keeps a solved level open even with a gap before it', () => {
+    // Progress earned before the sequential rule must not strand a level.
+    const progress = recordSolve(
+      defaultProgress(),
+      'easy',
+      50,
+      { elapsedMs: 1000, hintUsed: false, perfect: true },
+      AT,
+    ).progress;
+    const tiles = [
+      ...levels(progress).querySelectorAll<HTMLButtonElement>('.level-tile'),
+    ];
+    expect(tiles[49]?.disabled).toBe(false);
+    expect(tiles[50]?.disabled).toBe(false);
+    expect(tiles[48]?.disabled).toBe(true);
+    document.querySelectorAll('.screen--levels').forEach((n) => n.remove());
+  });
+
+  it('does not ring a locked level as the suggestion', () => {
+    const root = levels(defaultProgress());
+    const ringed = [...root.querySelectorAll('.level-tile--suggested')];
+    expect(ringed).toHaveLength(1);
+    expect(ringed[0]?.textContent).toBe('1');
     root.remove();
   });
 });

@@ -12,8 +12,8 @@ import {
  */
 export default {
   name: 'tier unlock without a reload',
-  async run({ page, url, shot }) {
-    const { results, check } = createChecks();
+  async run({ page, url, shot, results }) {
+    const { check } = createChecks(results);
 
     await page.setViewport(360, 640, 3);
     await page.blank();

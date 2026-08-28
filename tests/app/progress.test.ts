@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   firstUnsolved,
+  isLevelUnlocked,
   isPerfect,
   isSolved,
   isUnlocked,
@@ -171,5 +172,58 @@ describe('level suggestions', () => {
       expect(nextLevel(tier, 1)).toBe(2);
       expect(nextLevel(tier, tier.levelCount)).toBeNull();
     }
+  });
+});
+
+describe('sequential level unlock', () => {
+  it('opens level 1 of every tier from the start', () => {
+    const progress = defaultProgress();
+    for (const tier of TIERS) {
+      expect(isLevelUnlocked(progress, tier.id, 1)).toBe(true);
+    }
+  });
+
+  it('keeps every later level shut on a fresh profile', () => {
+    const progress = defaultProgress();
+    expect(isLevelUnlocked(progress, 'easy', 2)).toBe(false);
+    expect(isLevelUnlocked(progress, 'easy', 50)).toBe(false);
+    expect(isLevelUnlocked(progress, 'easy', 100)).toBe(false);
+  });
+
+  it('opens exactly the next level when one is solved', () => {
+    const progress = solve(defaultProgress(), 'easy', 1);
+    expect(isLevelUnlocked(progress, 'easy', 2)).toBe(true);
+    expect(isLevelUnlocked(progress, 'easy', 3)).toBe(false);
+  });
+
+  it('tracks the tier it is asked about, not another', () => {
+    const progress = solve(defaultProgress(), 'easy', 1);
+    expect(isLevelUnlocked(progress, 'easy', 2)).toBe(true);
+    expect(isLevelUnlocked(progress, 'normal', 2)).toBe(false);
+  });
+
+  it('leaves a solved level open even when the one before it is not', () => {
+    // Progress earned before this rule existed must not strand a level.
+    const progress = solve(defaultProgress(), 'easy', 50);
+    expect(isLevelUnlocked(progress, 'easy', 50)).toBe(true);
+    expect(isLevelUnlocked(progress, 'easy', 51)).toBe(true);
+    expect(isLevelUnlocked(progress, 'easy', 49)).toBe(false);
+  });
+
+  it('never opens a level the suggestion would not point at', () => {
+    let progress = defaultProgress();
+    for (let i = 1; i <= 7; i++) progress = solve(progress, 'easy', i);
+    const suggested = firstUnsolved(progress, 'easy');
+    expect(suggested).toBe(8);
+    expect(isLevelUnlocked(progress, 'easy', suggested)).toBe(true);
+    expect(isLevelUnlocked(progress, 'easy', suggested + 1)).toBe(false);
+  });
+
+  it('opens the level the Won card sends you to', () => {
+    const tier = tierById('easy');
+    const progress = solve(defaultProgress(), 'easy', 12);
+    const next = nextLevel(tier, 12);
+    expect(next).toBe(13);
+    expect(isLevelUnlocked(progress, 'easy', next as number)).toBe(true);
   });
 });

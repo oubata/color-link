@@ -10,8 +10,8 @@ import {
 /** Spec 4 end to end, plus acceptance criteria 8, 9, 12, 13 and 14. */
 export default {
   name: 'core loop',
-  async run({ page, url, shot }) {
-    const { results, check } = createChecks();
+  async run({ page, url, shot, results }) {
+    const { check } = createChecks(results);
     await freshStart(page, url);
 
     // ---- Home (criterion 8) -------------------------------------------
@@ -289,8 +289,9 @@ export default {
       `document.querySelector('.topbar .icon-button').click(); return 1;`,
     );
     await sleep(350);
+    // Level 2 is the open one here: level 1 is solved, so level 3 is locked.
     await page.evaluate(
-      `document.querySelectorAll('.level-tile')[2].click(); return 1;`,
+      `document.querySelectorAll('.level-tile')[1].click(); return 1;`,
     );
     await sleep(400);
     await page.evaluate(`

@@ -840,3 +840,41 @@ request at all. `npm run verify:pwa` asserts this.
 **Phase 6 verified:** 22 browser checks, including a genuine offline pass — the
 preview server is killed, the network is emulated offline, and the app is
 reloaded and a level played to a solve. Unit tests total 188.
+
+### Rule changes after first phone test (Tob, 28 August 2026)
+
+**Open question 2 settled: full coverage is no longer required to win.** Spec
+assumption 4 required 100% cell coverage and spec 15 listed the alternative as
+an open question. Tob chose the alternative: a level is solved once every pair
+is connected. `WIN_REQUIRES_FULL_COVERAGE` in `src/engine/queries.ts` is the
+one line that reverses it.
+
+What this costs, stated plainly because it is not obvious: the verification
+suite joins every pair along breadth-first _shortest_ routes and now wins
+ordinary Normal boards at 83% coverage. So a player can ignore the board and
+route each pair the short way. The tiling constraint that spec 1 calls the
+"aha" — _you are not routing lines, you are tiling the board with them_ — no
+longer bites, and the difficulty ladder in spec 3 now varies mainly by how many
+pairs must be joined rather than by how hard the board is to fill. The coverage
+percentage is still shown in the HUD; it is feedback now, not a gate.
+
+The generator is untouched, so every level still _has_ a full-coverage solution
+and `GENERATOR_VERSION` stays at 1. Restoring the old rule is a one-line change
+that invalidates no saved progress.
+
+**Levels now open one at a time.** This overrides spec assumption 8 ("within a
+tier all 100 levels are playable in any order") and spec 14.3, which put
+sequential locks out of scope. `isLevelUnlocked` in `src/app/progress.ts`: a
+level opens when the one before it is solved. Level 1 of every tier is always
+open. An already-solved level stays open regardless of what sits before it, so
+progress earned under the old rule cannot strand a level behind a gap. Locked
+tiles render as disabled buttons — dimmed, unclickable, and skipped by Tab
+rather than trapping a keyboard user on a control that does nothing.
+
+Tier unlock thresholds (assumption 7) are unchanged and still count solves
+within the gate tier.
+
+**No change was needed for "prompt to go to the next level".** The Won card has
+carried a full-width `Next level` pill as its primary action since phase 4, per
+spec 9. It was unreachable in practice because connecting every pair did not
+win — fixing the rule above surfaced it.

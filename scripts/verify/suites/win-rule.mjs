@@ -1,15 +1,17 @@
 import {
   createChecks,
   freshStart,
+  seedSolved,
   sleep,
-  solveWithHints,
+  waitForScreen,
 } from '../helpers.mjs';
 
 /**
  * In the page: find the dots, pair them by colour, and drag each pair along a
- * breadth-first SHORTEST route rather than the intended one. On a level with any
- * slack that joins every pair while stranding cells, which is the state
- * criterion 11 is about.
+ * breadth-first SHORTEST route rather than the intended one. That joins every
+ * pair while leaving cells empty, which is exactly the state the win rule now
+ * accepts. Greedy routing in a fixed order can block itself, so the caller
+ * tries several boards.
  */
 const PLAY_SHORTEST = `
   const canvas = document.querySelector('.board');
@@ -77,66 +79,59 @@ const PLAY_SHORTEST = `
   return { size, pairCount: pairs.length };
 `;
 
-/** Criterion 11: joining every pair is not enough — the board must also be full. */
+const READ_STATE = `
+  const stats = [...document.querySelectorAll('.stat')].map(s => s.textContent);
+  const panel = document.querySelector('.modal__panel');
+  return {
+    lines: stats[0],
+    filled: Number((stats[1] || '').replace(/\\D/g, '')),
+    card: panel ? panel.querySelector('.modal__title').textContent : null,
+    buttons: panel
+      ? [...panel.querySelectorAll('button')].map(b => b.textContent)
+      : [],
+  };
+`;
+
+/**
+ * The win rule as Tob settled it: connecting every pair is enough and the board
+ * need not be full. Spec assumption 4, spec 15 open question 2.
+ */
 export default {
   name: 'win rule',
-  async run({ page, url, shot }) {
-    const { results, check } = createChecks();
+  async run({ page, url, shot, results }) {
+    const { check } = createChecks(results);
     await freshStart(page, url);
 
+    // Levels open one at a time now, and greedy routing blocks itself on some
+    // boards, so open a run of them and take the first it joins completely.
+    await seedSolved(page, 'normal', 11);
+    await page.reload();
+    await waitForScreen(page, '.screen--home');
     await page.evaluate(
       `document.querySelectorAll('.tier__button')[1].click(); return 1;`,
     );
     await sleep(350);
 
-    let demonstrated = false;
+    let played = null;
+    let state = null;
+    let usedLevel = 0;
 
-    for (let level = 1; level <= 12 && !demonstrated; level++) {
+    for (let level = 1; level <= 12; level++) {
       await page.evaluate(
         `document.querySelectorAll('.level-tile')[${level - 1}].click(); return 1;`,
       );
       await sleep(500);
 
-      const played = await page.evaluate(PLAY_SHORTEST);
-      await sleep(400);
+      played = await page.evaluate(PLAY_SHORTEST);
+      await sleep(500);
+      state = await page.evaluate(READ_STATE);
 
-      const state = await page.evaluate(`
-        const stats = [...document.querySelectorAll('.stat')].map(s => s.textContent);
-        return {
-          lines: stats[0],
-          filled: Number((stats[1] || '').replace(/\\D/g, '')),
-          won: document.querySelector('.modal') !== null,
-        };
-      `);
-
-      const allJoined =
-        state.lines === 'Lines ' + played.pairCount + '/' + played.pairCount;
-
-      if (allJoined && state.filled < 100) {
-        demonstrated = true;
-        check(
-          'every pair joined but the board unfilled does NOT win',
-          state.won === false,
-          `${state.lines}, ${state.filled}% filled, card shown = ${state.won}`,
-        );
-        await shot('30-all-joined-not-won');
-
-        await solveWithHints(page);
-        const finished = await page.evaluate(`
-          const stats = [...document.querySelectorAll('.stat')].map(s => s.textContent);
-          return {
-            filled: Number((stats[1] || '').replace(/\\D/g, '')),
-            won: document.querySelector('.modal__title')?.textContent ?? null,
-          };
-        `);
-        check(
-          'filling the last cells then wins',
-          finished.won === 'Solved' && finished.filled === 100,
-          `${finished.filled}% filled, card = ${finished.won}`,
-        );
+      if (state.lines === `Lines ${played.pairCount}/${played.pairCount}`) {
+        usedLevel = level;
         break;
       }
 
+      // Not every pair joined on this board; back out and try the next.
       await page.evaluate(`
         const modal = document.querySelector('.modal__panel');
         if (modal) {
@@ -149,13 +144,66 @@ export default {
       await sleep(400);
     }
 
-    if (!demonstrated) {
-      check(
-        'found a level where every pair joins without filling the board',
-        false,
-        'no slack found in the first 12 Normal levels',
-      );
-    }
+    check(
+      'found a board where shortest routes join every pair',
+      usedLevel > 0,
+      usedLevel > 0
+        ? `Normal level ${usedLevel}`
+        : 'none in the first 12 Normal levels',
+    );
+
+    if (usedLevel === 0) return results;
+
+    // Drawing each colour once with no hint also earns the Perfect badge, so
+    // the card legitimately reads either way.
+    check(
+      'joining every pair wins, with the board left unfilled',
+      (state.card === 'Solved' || state.card === 'Perfect') &&
+        state.filled < 100,
+      `${state.lines}, ${state.filled}% filled, card = ${state.card}`,
+    );
+    check(
+      'the won card offers the next level',
+      state.buttons[0] === 'Next level',
+      state.buttons.join(','),
+    );
+    // Worth recording plainly: this is what the rule change costs. The board is
+    // left with holes and the level still counts as solved.
+    check(
+      'coverage is still reported, it is just no longer a gate',
+      Number.isFinite(state.filled),
+      `${state.filled}% covered at the moment of the win`,
+    );
+    await shot('30-won-without-full-coverage');
+
+    await page.evaluate(`
+      [...document.querySelectorAll('.modal__panel button')]
+        .find(b => b.textContent === 'Next level').click();
+      return 1;
+    `);
+    await sleep(500);
+    const next = await page.evaluate(
+      `return document.querySelector('.topbar__title')?.textContent ?? null;`,
+    );
+    check(
+      'next level opens straight from the card',
+      next === `Normal · Level ${usedLevel + 1}`,
+      String(next),
+    );
+
+    // One pair short must still not win.
+    await page.evaluate(`
+      [...document.querySelectorAll('.tool')]
+        .find(b => b.getAttribute('aria-label') === 'Hint').click();
+      return 1;
+    `);
+    await sleep(700);
+    const partial = await page.evaluate(READ_STATE);
+    check(
+      'one connected pair out of many does not win',
+      partial.card === null && !partial.lines.startsWith('Lines 0/'),
+      `${partial.lines}, card = ${partial.card}`,
+    );
 
     return results;
   },

@@ -2,6 +2,7 @@ import {
   createChecks,
   freshStart,
   sleep,
+  seedSolved,
   solveWithHints,
   stats,
   waitForScreen,
@@ -10,8 +11,8 @@ import {
 /** Spec 5.5 edge cases plus criterion 10: the biggest board on the smallest phone. */
 export default {
   name: 'edge cases',
-  async run({ page, url, shot }) {
-    const { results, check } = createChecks();
+  async run({ page, url, shot, results }) {
+    const { check } = createChecks(results);
     await freshStart(page, url);
 
     // ---- Auto-pause when the tab is hidden --------------------------------
@@ -81,11 +82,12 @@ export default {
     await sleep(300);
 
     // ---- The last level of a tier returns to the grid ---------------------
+    // Levels open one at a time now, so reaching 100 means 1..99 are solved.
+    await seedSolved(page, 'easy', 99);
+    await page.reload();
+    await waitForScreen(page, '.screen--home');
     await page.evaluate(
-      `localStorage.removeItem('colorlink:v1:inProgress'); return 1;`,
-    );
-    await page.evaluate(
-      `document.querySelector('.topbar .icon-button').click(); return 1;`,
+      `document.querySelectorAll('.tier__button')[0].click(); return 1;`,
     );
     await sleep(350);
     await page.evaluate(`
@@ -164,6 +166,9 @@ export default {
     await shot('20-all-unlocked');
 
     // ---- Master 14x14 on a 360px phone (criterion 10) ---------------------
+    await seedSolved(page, 'master', 99);
+    await page.reload();
+    await waitForScreen(page, '.screen--home');
     await page.evaluate(
       `document.querySelectorAll('.tier__button')[5].click(); return 1;`,
     );

@@ -13,7 +13,7 @@ import { rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { launch, sleep } from './cdp.mjs';
-import { consoleNoise } from './helpers.mjs';
+import { consoleNoise, createChecks } from './helpers.mjs';
 
 import coreLoop from './suites/core-loop.mjs';
 import keyboardA11y from './suites/keyboard-a11y.mjs';
@@ -94,13 +94,12 @@ try {
     console.log(`\n${suite.name}`);
     console.log('-'.repeat(suite.name.length));
 
-    let results;
+    // Own the array, so a suite that throws still reports what it proved.
+    const { results, check } = createChecks();
     try {
-      results = await suite.run({ page, url, shot });
+      await suite.run({ page, url, shot, results, check });
     } catch (error) {
-      results = [
-        { name: 'suite ran to completion', pass: false, detail: error.message },
-      ];
+      check('suite ran to completion', false, error.message);
     }
 
     const noise = consoleNoise({ logs: page.logs.slice(before) });

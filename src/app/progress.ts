@@ -78,6 +78,24 @@ export function recordSolve(
   return { progress: { tiers }, newBest };
 }
 
+/**
+ * A level opens once the one before it is solved.
+ *
+ * Spec assumption 8 let every level in a tier be played in any order, and spec
+ * 14.3 put sequential locks out of scope. Tob overrode both. An already-solved
+ * level stays open so it can be replayed, which also keeps progress earned
+ * under the old rule from stranding levels behind a gap.
+ */
+export function isLevelUnlocked(
+  progress: Progress,
+  tier: TierId,
+  index: number,
+): boolean {
+  if (index <= 1) return true;
+  if (isSolved(progress, tier, index)) return true;
+  return isSolved(progress, tier, index - 1);
+}
+
 /** The level the grid suggests next: the first unsolved one, else level 1. */
 export function firstUnsolved(progress: Progress, tier: TierId): number {
   const config = tierById(tier);

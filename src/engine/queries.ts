@@ -78,8 +78,18 @@ export function completedCount(level: Level, paths: Paths): number {
   return n;
 }
 
-/** Spec 5.3: every pair connected AND every cell covered. */
+/**
+ * Whether the board must also be full to win.
+ *
+ * Spec assumption 4 required it and spec 15 listed it as open question 2.
+ * Tob settled it the other way: connecting every pair is enough. Flip this
+ * back to `true` to restore the tiling puzzle described in spec 1.
+ */
+export const WIN_REQUIRES_FULL_COVERAGE = false;
+
+/** Spec 5.3, as settled: every pair connected. */
 export function isWon(level: Level, paths: Paths): boolean {
   if (completedCount(level, paths) !== level.pairs.length) return false;
+  if (!WIN_REQUIRES_FULL_COVERAGE) return true;
   return occupiedCount(level, paths) === level.size * level.size;
 }

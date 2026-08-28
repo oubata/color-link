@@ -21,6 +21,8 @@ export const S = {
   levelSelectTitle: (tierName: string, size: number) =>
     `${tierName} · ${size}×${size}`,
   levelTileLabel: (index: number) => `Level ${index}`,
+  levelLockedLabel: (index: number) =>
+    `Level ${index}, locked. Solve level ${index - 1} first.`,
 
   // Play
   playTitle: (tierName: string, index: number) =>

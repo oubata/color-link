@@ -1,8 +1,10 @@
 import { sleep } from './cdp.mjs';
 
-/** Collects pass/fail lines for one suite. */
-export function createChecks() {
-  const results = [];
+/**
+ * Collects pass/fail lines for one suite. Pass an array in and the caller keeps
+ * hold of it, so checks already collected survive a suite throwing part way.
+ */
+export function createChecks(results = []) {
   return {
     results,
     check(name, pass, detail = '') {
@@ -10,6 +12,29 @@ export function createChecks() {
       return Boolean(pass);
     },
   };
+}
+
+const TIER_IDS = ['easy', 'normal', 'hard', 'extreme', 'expert', 'master'];
+
+/**
+ * Mark levels 1..upTo of a tier solved. Levels open one at a time now, so a
+ * suite that needs a later level has to earn its way there or seed it.
+ */
+export function seedSolved(page, tier, upTo) {
+  return page.evaluate(`
+    const KEY = 'colorlink:v1:progress';
+    const raw = JSON.parse(localStorage.getItem(KEY) || 'null') || { tiers: {} };
+    for (const id of ${JSON.stringify(TIER_IDS)}) {
+      if (!raw.tiers[id]) raw.tiers[id] = { solved: {} };
+    }
+    for (let i = 1; i <= ${upTo}; i++) {
+      raw.tiers['${tier}'].solved[i] =
+        { bestMs: 1000, hint: false, perfect: false, at: '2026-08-27T00:00:00.000Z' };
+    }
+    localStorage.setItem(KEY, JSON.stringify(raw));
+    localStorage.removeItem('colorlink:v1:inProgress');
+    return 1;
+  `);
 }
 
 /** The three HUD readings, as text. */
