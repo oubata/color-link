@@ -5,6 +5,7 @@
  *
  *   npm run verify:pwa
  *   npm run verify:pwa -- --no-build   # reuse whatever is already in dist/
+ *   npm run verify:pwa -- --url=https://…  # check a deployed site instead
  */
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
@@ -18,7 +19,12 @@ const PROFILE = join(HERE, '.pwa-profile');
 const SHOTS = join(HERE, 'screenshots');
 const VITE = join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js');
 const port = Number(process.env['VERIFY_PWA_PORT'] ?? 5180);
-const url = `http://localhost:${port}/`;
+const urlArg = process.argv.find((a) => a.startsWith('--url='));
+/** A deployed site: nothing to build, nothing to serve, nothing to kill. */
+const remote = Boolean(urlArg);
+const url = remote
+  ? urlArg.slice('--url='.length)
+  : `http://localhost:${port}/`;
 
 function run(args) {
   return new Promise((resolve, reject) => {
@@ -47,18 +53,22 @@ let server = null;
 let page = null;
 
 try {
-  if (!process.argv.includes('--no-build')) {
-    console.log('building...');
-    await run([VITE, 'build']);
-  }
-
-  server = spawn(
-    process.execPath,
-    [VITE, 'preview', '--port', String(port), '--strictPort'],
-    { cwd: ROOT, stdio: 'ignore' },
-  );
-  if (!(await waitForServer())) {
-    throw new Error(`the preview server never came up on ${url}`);
+  if (remote) {
+    console.log(`checking ${url}`);
+    if (!(await waitForServer(8))) throw new Error(`nothing is serving ${url}`);
+  } else {
+    if (!process.argv.includes('--no-build')) {
+      console.log('building...');
+      await run([VITE, 'build']);
+    }
+    server = spawn(
+      process.execPath,
+      [VITE, 'preview', '--port', String(port), '--strictPort'],
+      { cwd: ROOT, stdio: 'ignore' },
+    );
+    if (!(await waitForServer())) {
+      throw new Error(`the preview server never came up on ${url}`);
+    }
   }
 
   page = await launch({ port: 9336, profile: PROFILE });
@@ -264,25 +274,32 @@ try {
     uploadThroughput: -1,
   });
   // Stop the server too, so a pass cannot be an artefact of the emulation.
-  server.kill();
-  server = null;
-  await sleep(500);
+  // A deployed host is not ours to stop, so there offline rests on emulation.
+  if (server) {
+    server.kill();
+    server = null;
+    await sleep(500);
+  }
 
   // Probed from Node, not the page: in the page the service worker would
   // answer from cache, which is exactly the behaviour under test.
-  let reachable = 'gone';
-  try {
-    await fetch(url);
-    reachable = 'reachable';
-  } catch {
-    // Expected: nothing is listening any more.
+  if (!remote) {
+    let reachable = 'gone';
+    try {
+      await fetch(url);
+      reachable = 'reachable';
+    } catch {
+      // Expected: nothing is listening any more.
+    }
+    check('the origin server is really gone', reachable === 'gone', reachable);
   }
-  check('the origin server is really gone', reachable === 'gone', reachable);
 
   await page.reload();
   const offlineHome = await waitForScreen(page, '.screen--home');
   check(
-    'the app still loads with the network off and the server stopped',
+    remote
+      ? 'the app still loads with the network off'
+      : 'the app still loads with the network off and the server stopped',
     offlineHome,
     offlineHome ? '' : 'Home never rendered',
   );

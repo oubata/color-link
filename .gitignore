@@ -5,7 +5,5 @@ coverage
 dist
 dist-ssr
 node_modules
-scripts/icons/.icon-profile
-scripts/verify/.browser-profile
-scripts/verify/.pwa-profile
+scripts/**/.*-profile/
 scripts/verify/screenshots
