@@ -494,6 +494,107 @@
   margin-top: var(--space-5);
 }
 
+.modal__summary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-3);
+  font-size: 15px;
+}
+
+.modal__summary-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.modal__actions-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+/*
+ * The solved board stays above its results card (spec 9). The card is
+ * bottom-anchored, so the play screen stops centring and drops the controls
+ * that no longer apply, leaving the whole puzzle visible above it.
+ */
+.screen--play.is-won .board-wrap {
+  margin-top: 0;
+}
+
+.screen--play.is-won .stats,
+.screen--play.is-won .toolbar {
+  display: none;
+}
+
+/*
+ * With room to spare, centre the board in what is left above the card instead
+ * of pinning it under the top bar, so the gap is shared rather than dumped
+ * between the two. Short screens keep the pinned layout, where every pixel is
+ * needed to clear the card at all.
+ */
+@media (min-height: 720px) {
+  .screen--play.is-won {
+    padding-bottom: 240px;
+  }
+
+  .screen--play.is-won .board-wrap {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
+/* The clear card is the results card: shorter than a normal modal. */
+.modal--clear {
+  padding: var(--space-1);
+}
+
+.modal--clear .modal__panel {
+  padding: var(--space-3);
+}
+
+/*
+ * A 640px screen is the shortest the board is designed for, and there the card
+ * has barely 220px under a 340px board. Give back the last of the padding.
+ */
+@media (max-height: 700px) {
+  .modal--clear .modal__title {
+    font-size: 20px;
+  }
+
+  .modal--clear .modal__summary,
+  .modal--clear .modal__actions {
+    margin-top: var(--space-2);
+  }
+
+  .modal--clear .modal__actions {
+    gap: var(--space-1);
+  }
+}
+
+.modal--clear .modal__title {
+  font-size: 22px;
+}
+
+.modal--clear .modal__rows {
+  margin-top: var(--space-3);
+}
+
+.modal--clear .modal__row {
+  padding: var(--space-2) 0;
+}
+
+.modal--clear .modal__note {
+  margin-top: var(--space-1);
+}
+
+.modal--clear .modal__actions {
+  margin-top: var(--space-3);
+}
+
 /* ---- Settings ---------------------------------------------------------- */
 
 .settings {

@@ -190,13 +190,26 @@ describe('Won card (spec 9)', () => {
     return { root: mount(view), pressed };
   }
 
-  it('shows the time and the standing best', () => {
+  it('shows the time and the standing best on one line', () => {
     const { root } = won(base);
-    const rows = [...root.querySelectorAll('.modal__row')].map(
+    const items = [...root.querySelectorAll('.modal__summary-item')].map(
       (r) => r.textContent,
     );
     expect(root.querySelector('.modal__title')?.textContent).toBe('Solved');
-    expect(rows).toEqual(['Time1:24', 'Best1:02']);
+    // One line, not two bordered rows: the card has to clear the board.
+    expect(items).toEqual(['Time1:24', 'Best1:02']);
+    root.remove();
+  });
+
+  it('keeps the card short enough to sit under the board', () => {
+    const { root } = won({ ...base, hintUsed: true });
+    // Every element that costs vertical height, in order. A bordered row list
+    // is what made the old card tall enough to cover half the puzzle.
+    expect(root.querySelectorAll('.modal__rows')).toHaveLength(0);
+    expect(root.querySelectorAll('.modal__row')).toHaveLength(0);
+    expect(root.querySelectorAll('.modal__summary')).toHaveLength(1);
+    // Replay and Level list share a row rather than stacking.
+    expect(root.querySelectorAll('.modal__actions-row button')).toHaveLength(2);
     root.remove();
   });
 

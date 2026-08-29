@@ -184,6 +184,39 @@ export default {
       (won?.buttons ?? []).includes('Next level'),
       (won?.buttons ?? []).join(','),
     );
+    // The solved board must stay fully visible above the card (spec 9). The
+    // card used to be a bottom sheet that covered half the puzzle.
+    const wonLayout = await page.evaluate(`
+      const board = document.querySelector('.board');
+      const panel = document.querySelector('.modal__panel');
+      if (!board || !panel) return null;
+      const b = board.getBoundingClientRect();
+      const p = panel.getBoundingClientRect();
+      return {
+        gap: Math.round(p.top - b.bottom),
+        boardVisible: Math.round(b.bottom) <= Math.round(p.top),
+        boardTop: Math.round(b.top),
+        cardHeight: Math.round(p.height),
+        scrollH: document.documentElement.scrollHeight,
+        innerH: window.innerHeight,
+      };
+    `);
+    check(
+      'the results card sits below the solved board, not over it',
+      wonLayout !== null && wonLayout.boardVisible,
+      wonLayout
+        ? `gap ${wonLayout.gap}px, card ${wonLayout.cardHeight}px tall`
+        : 'no card',
+    );
+    check(
+      'the whole board is on screen with the card up',
+      wonLayout !== null &&
+        wonLayout.boardTop >= 0 &&
+        wonLayout.scrollH <= wonLayout.innerH,
+      wonLayout
+        ? `board top ${wonLayout.boardTop}, scroll ${wonLayout.scrollH}/${wonLayout.innerH}`
+        : 'no card',
+    );
     await shot('03-won');
 
     // ---- Next level -----------------------------------------------------

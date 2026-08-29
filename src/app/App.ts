@@ -164,6 +164,11 @@ export class App {
     }
     this.mountedScreen = screen;
 
+    // The results card sits below the board rather than over it, so the solved
+    // puzzle stays visible. The play screen has to give up its centring and the
+    // controls that no longer apply.
+    this.screenView?.el.classList.toggle('is-won', screen.name === 'won');
+
     this.modalView?.destroy?.();
     this.modalView?.el.remove();
     this.modalView = modal ? this.buildModal(modal) : null;
