@@ -883,3 +883,39 @@ within the gate tier.
 carried a full-width `Next level` pill as its primary action since phase 4, per
 spec 9. It was unreachable in practice because connecting every pair did not
 win — fixing the rule above surfaced it.
+
+### Board layout revisited on a real phone (Tob, 28 August 2026)
+
+Section 9's cell formula reserved 32px of width and 220px of height. Measured on
+a Galaxy A14 at 360x780 that left the board covering 38% of the screen, pinned
+to the top, with 284px of dead space beneath it — 36% of the screen height doing
+nothing. Every board size on a 360px-wide phone is width-limited, so the only
+way to enlarge the board is to reclaim horizontal padding; the vertical slack
+can only be redistributed.
+
+**Portrait.** `viewportPaddingX` 32 -> 16 and `viewportPaddingY` 220 -> 196. The
+board and its controls are now centred in the space under the top bar rather
+than stacked from the top. Hard goes from 41px to 43px cells (328px to 344px of
+a 360px screen, 95% of the width) and from 38.3% to 42.1% of the screen; the
+ceiling for a square board on that phone is 46%.
+
+**Landscape, which was broken.** The portrait formula reserved 220px of height
+on a 360px-high screen, and the 20px cell floor then forced a 14x14 board 280px
+tall into 140px of space: the page scrolled, which section 9 forbids. Easy
+meanwhile drew a 160px board on a 780px-wide screen, 9% of the display.
+
+Landscape now lays the screen out as a grid — board on the left across the full
+height, stats and toolbar in a column beside it — with its own constants,
+`landscapePaddingX` 184 and `landscapePaddingY` 64. Nothing scrolls at any board
+size, Easy's board goes 160px -> 296px, and Master fits at 21px cells where it
+previously overflowed by 91px.
+
+`isLandscape` in `src/render/layout.ts` is the switch: wider than tall, and under
+500px high. A wide desktop window stays on the portrait maths.
+
+The two padding constants must stay in step with the CSS. `.screen--play` sets
+8px of horizontal padding in portrait and 8px vertical in landscape, and
+`tests/render/layout.test.ts` pins the arithmetic in both orientations. The
+verification suite rotates the viewport and asserts nothing scrolls and the
+controls do not sit on top of the board — the check that caught a 4px overflow
+while this was being written.

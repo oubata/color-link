@@ -15,8 +15,22 @@ export const STORAGE_KEYS = {
 
 /** Board layout (spec 9). */
 export const BOARD_LAYOUT = {
-  viewportPaddingX: 32,
-  viewportPaddingY: 220,
+  /**
+   * Chrome the board cannot use. On a phone every board size is width-limited,
+   * so these two numbers are what decide how big the board gets. They must stay
+   * in step with the padding on `.screen--play` and the height of the top bar,
+   * stats row and toolbar; `tests/render/layout.test.ts` pins the arithmetic.
+   */
+  viewportPaddingX: 16,
+  viewportPaddingY: 196,
+  /**
+   * Landscape turns the column into a row: the controls move beside the board
+   * instead of under it, so the board is limited by height, not width.
+   * Without this the 20px floor forced a board taller than the screen and the
+   * page scrolled, which spec 9 forbids.
+   */
+  landscapePaddingX: 184,
+  landscapePaddingY: 64,
   minCellPx: 20,
   maxCellPx: 72,
 } as const;

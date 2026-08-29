@@ -233,6 +233,49 @@ export default {
     );
     await shot('21-master-100');
 
+    // ---- Rotation (spec 5.5): the board must still fit -------------------
+    await page.setViewport(780, 360, 3);
+    await sleep(500);
+    const landscape = await page.evaluate(`
+      const canvas = document.querySelector('.board');
+      const rect = canvas.getBoundingClientRect();
+      const stats = document.querySelector('.stats').getBoundingClientRect();
+      const tools = document.querySelector('.toolbar').getBoundingClientRect();
+      return {
+        boardPx: Math.round(rect.width),
+        boardBottom: Math.round(rect.bottom),
+        docScrollHeight: document.documentElement.scrollHeight,
+        docScrollWidth: document.documentElement.scrollWidth,
+        innerHeight: window.innerHeight,
+        innerWidth: window.innerWidth,
+        // The controls move beside the board, so they must not sit on top of it.
+        controlsClearOfBoard: stats.left >= rect.right - 1 && tools.left >= rect.right - 1,
+        statsOverlapsTools: !(stats.bottom <= tools.top + 1 || tools.bottom <= stats.top + 1),
+      };
+    `);
+    check(
+      'rotating to landscape does not make the page scroll',
+      landscape.docScrollHeight <= landscape.innerHeight &&
+        landscape.docScrollWidth <= landscape.innerWidth,
+      `scroll ${landscape.docScrollHeight}x${landscape.docScrollWidth} vs ` +
+        `${landscape.innerHeight}x${landscape.innerWidth}`,
+    );
+    check(
+      'the landscape board fits the height it is given',
+      landscape.boardBottom <= landscape.innerHeight,
+      `board ends at ${landscape.boardBottom} of ${landscape.innerHeight}`,
+    );
+    check(
+      'the landscape controls sit beside the board, not over it',
+      landscape.controlsClearOfBoard && !landscape.statsOverlapsTools,
+      `clear=${landscape.controlsClearOfBoard} statsOverToolbar=${landscape.statsOverlapsTools}`,
+    );
+    await shot('22-master-landscape');
+
+    // Back to the phone viewport the rest of the suite assumes.
+    await page.setViewport(360, 640, 3);
+    await sleep(400);
+
     return results;
   },
 };

@@ -14,15 +14,27 @@ export interface BoardLayout {
  * Spec 9: the board never scrolls, so the cell size is whatever makes it fit
  * the viewport, clamped so it stays both tappable and not absurdly large.
  */
+/** A wide, short viewport lays the controls out beside the board, not under it. */
+export function isLandscape(
+  viewportWidth: number,
+  viewportHeight: number,
+): boolean {
+  return viewportWidth > viewportHeight && viewportHeight < 500;
+}
+
 export function computeCellPx(
   viewportWidth: number,
   viewportHeight: number,
   size: number,
 ): number {
-  const available = Math.min(
-    viewportWidth - BOARD_LAYOUT.viewportPaddingX,
-    viewportHeight - BOARD_LAYOUT.viewportPaddingY,
-  );
+  const landscape = isLandscape(viewportWidth, viewportHeight);
+  const padX = landscape
+    ? BOARD_LAYOUT.landscapePaddingX
+    : BOARD_LAYOUT.viewportPaddingX;
+  const padY = landscape
+    ? BOARD_LAYOUT.landscapePaddingY
+    : BOARD_LAYOUT.viewportPaddingY;
+  const available = Math.min(viewportWidth - padX, viewportHeight - padY);
   const raw = Math.floor(available / size);
   return Math.max(
     BOARD_LAYOUT.minCellPx,

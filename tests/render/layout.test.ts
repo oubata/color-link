@@ -6,6 +6,7 @@ import {
   cellCenter,
   computeCellPx,
   computeLayout,
+  isLandscape,
 } from '../../src/render/layout';
 
 describe('board layout (spec 9, criterion 10)', () => {
@@ -20,8 +21,20 @@ describe('board layout (spec 9, criterion 10)', () => {
   });
 
   it('follows the cell-size formula', () => {
-    expect(computeCellPx(360, 640, 14)).toBe(23);
-    expect(computeCellPx(360, 640, 5)).toBe(65);
+    // Portrait phone: width-limited, so (360 - 16) / size.
+    expect(computeCellPx(360, 640, 14)).toBe(24);
+    expect(computeCellPx(360, 640, 5)).toBe(68);
+  });
+
+  it('uses nearly the full width in portrait, since that is the binding limit', () => {
+    for (const size of [5, 6, 8, 10, 12, 14]) {
+      const boardPx = computeCellPx(360, 780, size) * size;
+      expect(boardPx).toBeLessThanOrEqual(360 - BOARD_LAYOUT.viewportPaddingX);
+      // Never leave more than one cell's worth of width unused.
+      expect(boardPx).toBeGreaterThan(
+        360 - BOARD_LAYOUT.viewportPaddingX - size,
+      );
+    }
   });
 
   it('clamps the cell size at both ends', () => {
@@ -30,7 +43,27 @@ describe('board layout (spec 9, criterion 10)', () => {
   });
 
   it('is limited by height on a short, wide viewport', () => {
-    expect(computeCellPx(1200, 400, 8)).toBe(Math.floor((400 - 220) / 8));
+    // Short and wide is landscape: the controls sit beside the board, so the
+    // board is bounded by height less only the top bar.
+    expect(isLandscape(1200, 400)).toBe(true);
+    expect(computeCellPx(1200, 400, 8)).toBe(
+      Math.floor((400 - BOARD_LAYOUT.landscapePaddingY) / 8),
+    );
+  });
+
+  it('keeps the landscape board inside the screen, where it used to overflow', () => {
+    // A 14x14 board at the 20px floor is 280px tall. On a 360px-high screen
+    // the old portrait maths produced a board that scrolled off the bottom.
+    for (const size of [5, 8, 14]) {
+      const boardPx = computeCellPx(780, 360, size) * size;
+      expect(boardPx).toBeLessThanOrEqual(360 - BOARD_LAYOUT.landscapePaddingY);
+      expect(boardPx).toBeLessThanOrEqual(780 - BOARD_LAYOUT.landscapePaddingX);
+    }
+  });
+
+  it('treats a tall viewport as portrait even when it is wide', () => {
+    expect(isLandscape(1200, 900)).toBe(false);
+    expect(isLandscape(360, 780)).toBe(false);
   });
 
   it('maps pixels back to the cell they fall in', () => {
