@@ -14,7 +14,7 @@ import {
 import { isPathComplete, isWon } from './queries';
 
 /**
- * The rules of Color Link, exactly as tabulated in spec 5.2.
+ * The rules of pOZ-Link, exactly as tabulated in spec 5.2.
  *
  * Pure: no DOM, no randomness, no timers. The app owns the clock; the engine
  * owns the board.

@@ -1,5 +1,5 @@
 /** Display name of the app. Rename here and nowhere else. */
-export const APP_NAME = 'Color Link';
+export const APP_NAME = 'pOZ-Link';
 
 /** Human-facing version string, shown in Settings. */
 export const APP_VERSION = '1.0.0';

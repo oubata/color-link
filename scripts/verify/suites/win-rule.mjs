@@ -1,6 +1,7 @@
 import {
   createChecks,
   freshStart,
+  SAMPLE_CELL,
   seedSolved,
   sleep,
   solveWithHints,
@@ -14,7 +15,9 @@ import {
  * reject. Greedy routing in a fixed order can block itself, so the caller tries
  * several boards until one joins every pair.
  */
-const PLAY_SHORTEST = `
+const PLAY_SHORTEST =
+  SAMPLE_CELL +
+  `
   const canvas = document.querySelector('.board');
   const ctx = canvas.getContext('2d');
   const size = Number(canvas.getAttribute('aria-label').match(/(\\d+) by/)[1]);
@@ -25,8 +28,9 @@ const PLAY_SHORTEST = `
   const byColour = new Map();
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
-      const d = ctx.getImageData(Math.floor((c + 0.5) * cell), Math.floor((r + 0.5) * cell), 1, 1).data;
-      if (Math.max(d[0], d[1], d[2]) - Math.min(d[0], d[1], d[2]) <= 40) continue;
+      const hit = sampleCell(ctx, cell, r, c);
+      if (hit.saturation <= 40) continue;
+      const d = hit.data;
       const key = d[0] + ',' + d[1] + ',' + d[2];
       if (!byColour.has(key)) byColour.set(key, []);
       byColour.get(key).push([r, c]);

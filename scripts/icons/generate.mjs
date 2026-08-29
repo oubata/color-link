@@ -17,12 +17,16 @@ const ROOT = join(HERE, '..', '..');
 const PUBLIC = join(ROOT, 'public');
 const ANDROID_RES = join(ROOT, 'android', 'app', 'src', 'main', 'res');
 
-/** The favicon artwork, on a 64-unit grid: two dots joined by a bent line. */
+/**
+ * The favicon artwork on a 64-unit grid: two O's joined by a line. The line
+ * stops at each ring's outer edge rather than running to its centre, so the
+ * letters stay hollow — the same trick the board renderer uses.
+ */
 const ARTWORK = `
-  <path d="M18 22 H40 a6 6 0 0 1 6 6 v14" fill="none" stroke="#118AB2"
-        stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="18" cy="22" r="7" fill="#D62828" />
-  <circle cx="46" cy="42" r="7" fill="#D62828" />
+  <path d="M25 22 H40 a6 6 0 0 1 6 6 v7" fill="none" stroke="#118AB2"
+        stroke-width="7" stroke-linecap="butt" stroke-linejoin="round" />
+  <circle cx="18" cy="22" r="5.1" fill="none" stroke="#D62828" stroke-width="3.8" />
+  <circle cx="46" cy="42" r="5.1" fill="none" stroke="#D62828" stroke-width="3.8" />
 `;
 
 /**

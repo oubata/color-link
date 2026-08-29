@@ -403,14 +403,42 @@ export class BoardRenderer {
       const radius = baseRadius * scale;
       const fill = pathColor(pair.color);
 
+      const ringWidth = BOARD_STYLE.endpointRingWidth * cellPx * scale;
+      const holeRadius = Math.max(0, radius - ringWidth);
+      const labelled = this.options.colorBlindLabels;
+
       for (const cell of [pair.a, pair.b]) {
         const { x, y } = cellCenter(this.layout, cell);
-        context.fillStyle = fill;
-        context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
-        context.fill();
 
-        if (this.options.colorBlindLabels) {
+        // The path is already drawn and runs to the cell centre, so the middle
+        // of the O has to be reclaimed or the letter fills in the moment a
+        // line is attached. Repainting the cell underneath keeps the hole
+        // matching its neighbours, tint included.
+        if (holeRadius > 0) {
+          if (labelled) {
+            // A numeral needs a solid field. At a 20px cell the hole is 6px
+            // across, far too small to read a digit in, so colour-blind mode
+            // keeps the filled dot and gives up the O.
+            context.fillStyle = fill;
+          } else {
+            context.fillStyle = this.colors.cellBackground;
+            context.beginPath();
+            context.arc(x, y, holeRadius, 0, Math.PI * 2);
+            context.fill();
+            context.fillStyle = withAlpha(fill, BOARD_STYLE.tintAlpha);
+          }
+          context.beginPath();
+          context.arc(x, y, holeRadius, 0, Math.PI * 2);
+          context.fill();
+        }
+
+        context.strokeStyle = fill;
+        context.lineWidth = ringWidth;
+        context.beginPath();
+        context.arc(x, y, radius - ringWidth / 2, 0, Math.PI * 2);
+        context.stroke();
+
+        if (labelled) {
           context.fillStyle = labelColorOn(fill);
           context.font = `bold ${BOARD_STYLE.labelSize}px ${UI_FONT_STACK}`;
           context.textAlign = 'center';

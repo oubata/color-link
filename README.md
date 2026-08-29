@@ -1,4 +1,4 @@
-# Color Link
+# pOZ-Link
 
 A grid path-connection puzzle. Drag a line from each coloured dot to its twin;
 lines may not cross, and the board is only solved when every cell is covered.

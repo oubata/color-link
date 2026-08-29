@@ -919,3 +919,49 @@ The two padding constants must stay in step with the CSS. `.screen--play` sets
 verification suite rotates the viewport and asserts nothing scrolls and the
 controls do not sit on top of the board — the check that caught a 4px overflow
 while this was being written.
+
+### Renamed to pOZ-Link, and endpoints are now O's (Tob, 28 August 2026)
+
+**The working title in assumption 14 is settled: pOZ-Link.** It lives in
+`APP_NAME` exactly as section 2 promised, so the Home masthead, the page title,
+the web app manifest and the Won card all follow from one constant. The two
+places outside TypeScript that carry a name of their own — `capacitor.config.json`
+and the Android `strings.xml` — were updated to match.
+
+Three identifiers deliberately did **not** change, because each would cost more
+than it is worth and none is visible to a player:
+
+- The Android application id stays `com.oubata.colorlink`. Changing it installs
+  a second, separate app rather than upgrading the first, and abandons whatever
+  progress is on the device.
+- The storage prefix stays `colorlink:v1:` (section 11.2). Changing it discards
+  every saved best time and unlock.
+- The repository and its Pages URL stay `color-link`, so the published address
+  keeps working.
+
+**Endpoints are drawn as the letter O, not a filled dot.** This revises the
+section 10 board rendering: an endpoint is a ring of `endpointRingWidth` = 0.15
+of a cell, inside the unchanged 0.62 outer diameter, giving a hole 0.32 of a
+cell across. Both numbers are fractions of the cell, so the O holds from a 20px
+Master cell to a 72px Easy one.
+
+The subtlety is that a path is drawn to the centre of its endpoint cell, so a
+connected endpoint would fill its own hole and the O would collapse back into a
+dot the moment it was joined. The renderer therefore repaints the cell beneath
+the hole — background and colour tint both, so it matches its neighbours —
+before stroking the ring. The line then reads as running into the O and stopping
+at its inner edge.
+
+**Colour-blind labels keep the filled dot.** A numeral needs a solid field, and
+at a 20px cell the hole is 6px across, far too small to read a digit in. With
+labels on, the centre is filled with the endpoint colour and the numeral sits on
+it exactly as before. Legibility beats the letterform.
+
+The app icon follows the same idea: two O's joined by a line that stops at each
+ring's outer edge rather than running to its centre, so the letters stay hollow
+without needing anything painted over them.
+
+The verification suites locate endpoints by sampling the canvas, and were
+sampling each cell's centre — which is now a hole. `SAMPLE_CELL` in
+`scripts/verify/helpers.mjs` samples the ring as well and keeps the most
+saturated hit.

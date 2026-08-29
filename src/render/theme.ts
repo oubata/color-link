@@ -40,6 +40,12 @@ export const UI_FONT_STACK =
 /** Board drawing constants from spec 10. */
 export const BOARD_STYLE = {
   endpointDiameter: 0.62,
+  /**
+   * Endpoints are drawn as the letter O, not a filled dot (the O of pOZ-Link).
+   * A fraction of the cell, like every other measurement here, so the ring
+   * stays legible from a 20px Master cell up to a 72px Easy one.
+   */
+  endpointRingWidth: 0.15,
   strokeWidth: 0.36,
   pathAlpha: 0.92,
   activePathAlpha: 1,

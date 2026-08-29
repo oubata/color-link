@@ -4,6 +4,7 @@ import {
   focused,
   freshStart,
   goHome,
+  SAMPLE_CELL,
   sleep,
   waitForScreen,
 } from '../helpers.mjs';
@@ -65,7 +66,9 @@ export default {
     await shot('10-keyboard-cursor');
 
     // Read the dots off the canvas so the cursor walk is exact.
-    const board = await page.evaluate(`
+    const board = await page.evaluate(
+      SAMPLE_CELL +
+        `
       const canvas = document.querySelector('.board');
       const ctx = canvas.getContext('2d');
       const size = Number(canvas.getAttribute('aria-label').match(/(\\d+) by/)[1]);
@@ -73,12 +76,12 @@ export default {
       const found = [];
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
-          const d = ctx.getImageData(Math.floor((c + 0.5) * cell), Math.floor((r + 0.5) * cell), 1, 1).data;
-          if (Math.max(d[0], d[1], d[2]) - Math.min(d[0], d[1], d[2]) > 40) found.push([r, c]);
+          if (sampleCell(ctx, cell, r, c).saturation > 40) found.push([r, c]);
         }
       }
       return { size, found };
-    `);
+    `,
+    );
     check(
       'the board draws two dots per pair',
       board.found.length >= 4 && board.found.length % 2 === 0,

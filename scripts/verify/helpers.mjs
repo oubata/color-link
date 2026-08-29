@@ -37,6 +37,32 @@ export function seedSolved(page, tier, upTo) {
   `);
 }
 
+/**
+ * Page-side helper, to be prepended to an evaluate() that reads the board.
+ *
+ * Endpoints are drawn as hollow O's, so the centre pixel of an endpoint cell is
+ * the pale cell tint, not the colour. Sample the ring as well and keep the most
+ * saturated hit. The ring's mid-radius is (endpointDiameter - ringWidth) / 2 of
+ * a cell, which is 0.235 with the values in src/render/theme.ts.
+ */
+export const SAMPLE_CELL = `
+  const RING_R = 0.235;
+  function sampleCell(ctx, cell, r, c) {
+    const cx = (c + 0.5) * cell;
+    const cy = (r + 0.5) * cell;
+    const ring = RING_R * cell;
+    const points = [[0, 0], [ring, 0], [-ring, 0], [0, ring], [0, -ring]];
+    let best = null;
+    let bestSat = -1;
+    for (const [dx, dy] of points) {
+      const d = ctx.getImageData(Math.floor(cx + dx), Math.floor(cy + dy), 1, 1).data;
+      const sat = Math.max(d[0], d[1], d[2]) - Math.min(d[0], d[1], d[2]);
+      if (sat > bestSat) { bestSat = sat; best = d; }
+    }
+    return { data: best, saturation: bestSat };
+  }
+`;
+
 /** The three HUD readings, as text. */
 export function stats(page) {
   return page.evaluate(
