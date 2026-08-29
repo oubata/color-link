@@ -77,8 +77,12 @@ export class App {
 
   start(): void {
     this.applySettings();
-    this.machine.subscribe(() => this.render());
+    this.machine.subscribe(() => {
+      this.render();
+      this.syncHistory();
+    });
     document.addEventListener('visibilitychange', () => this.onVisibility());
+    window.addEventListener('popstate', () => this.onPopState());
 
     const resumed = this.persistence.loadInProgress();
     const target = resumed ? locateLevel(resumed.levelId) : null;
@@ -276,6 +280,54 @@ export class App {
           },
           onCancel: () => this.machine.closeModal(),
         });
+    }
+  }
+
+  // ---- Back navigation ---------------------------------------------------
+
+  /**
+   * Android's back button, and the browser's, are the same gesture. Neither
+   * knows about a screen machine that never touches the URL, so a spare history
+   * entry stands in for "there is somewhere to go back to". Without it, back
+   * closes the app from any screen.
+   */
+  private historyGuard = false;
+
+  private get atRoot(): boolean {
+    return this.machine.screen.name === 'home' && this.machine.modal === null;
+  }
+
+  private syncHistory(): void {
+    if (this.atRoot || this.historyGuard) return;
+    history.pushState({ colorlink: true }, '');
+    this.historyGuard = true;
+  }
+
+  private onPopState(): void {
+    // The guard entry has just been consumed.
+    this.historyGuard = false;
+    if (this.atRoot) return; // Nothing left to unwind: let the platform exit.
+    this.goBack();
+    this.syncHistory();
+  }
+
+  /** What the back chevron does on each screen, driven by the back gesture. */
+  private goBack(): void {
+    if (this.machine.modal !== null) {
+      this.closeOverlay();
+      return;
+    }
+    const screen = this.machine.screen;
+    switch (screen.name) {
+      case 'levelSelect':
+        this.machine.toHome();
+        return;
+      case 'playing':
+      case 'won':
+        this.machine.toLevelSelect(screen.tier);
+        return;
+      default:
+        return;
     }
   }
 

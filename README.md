@@ -32,6 +32,7 @@ in `localStorage`.
 | `npm run verify`     | Drives a headless browser through the app and checks the spec 12 criteria that can only be judged by running it |
 | `npm run verify:pwa` | Builds, then checks the manifest, icons, service worker, and a real offline reload                              |
 | `npm run icons`      | Re-rasterises the PNG icons from the artwork in `scripts/icons/generate.mjs`                                    |
+| `npm run apk`        | Builds the Android debug APK (needs a JDK and the Android SDK)                                                  |
 | `npm run format`     | Prettier                                                                                                        |
 
 `npm run verify` and `npm run verify:pwa` need a Chromium-based browser. They
@@ -117,6 +118,39 @@ generated on the device, so every one of the 600 is available offline.
 `npm run verify:pwa` proves this by stopping the server and playing a level to
 completion.
 
+## Android
+
+```bash
+npm run apk
+```
+
+Builds `android/app/build/outputs/apk/debug/app-debug.apk` — a self-contained
+app with the whole game inside it. No server, no URL bar, offline from first
+launch. Needs a JDK and the Android SDK, with `ANDROID_HOME` pointing at the
+SDK. Install it on a connected phone with:
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+The APK is debug-signed, so Android asks you to allow installation from an
+unknown source the first time.
+
+Two things worth knowing about the native build:
+
+- It uses `vite build --mode native`, which **drops the service worker**.
+  Capacitor serves every app version from the same `https://localhost` origin,
+  so a worker left by an older install would keep serving its cached assets and
+  a freshly installed APK would show the old app. Inside the APK the files are
+  local anyway, so the worker buys nothing.
+- The launcher icons come from `npm run icons`, same artwork as the web icons.
+  Edit `scripts/icons/generate.mjs` and re-run it; do not hand-edit the PNGs.
+
+The Android back button is wired to the app's own back navigation, via a spare
+history entry (`syncHistory` in `src/app/App.ts`). Without it, back would close
+the app from any screen. The same code makes the browser's back button work on
+the web.
+
 ## Layout
 
 ```
@@ -129,7 +163,9 @@ src/storage/     localStorage with schema guards.
 src/audio/       Synthesised sound and haptics.
 tests/           Mirrors src/.
 scripts/verify/  Browser checks for the acceptance criteria.
-scripts/icons/   Icon rasteriser.
+scripts/icons/   Icon rasteriser, for the web and Android launcher icons.
+scripts/android/ APK build.
+android/        Capacitor project: the APK wrapper around dist/.
 ```
 
 `src/engine/` and `src/generator/` are pure TypeScript and are not allowed to

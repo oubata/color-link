@@ -12,9 +12,14 @@
     "verify": "node scripts/verify/run.mjs",
     "format": "prettier --write .",
     "icons": "node scripts/icons/generate.mjs",
-    "verify:pwa": "node scripts/verify/pwa.mjs"
+    "verify:pwa": "node scripts/verify/pwa.mjs",
+    "build:native": "vite build --mode native",
+    "apk": "node scripts/android/build-apk.mjs"
   },
   "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
     "jsdom": "^29.1.1",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4",

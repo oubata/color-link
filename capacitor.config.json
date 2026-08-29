@@ -1,0 +1,8 @@
+{
+  "appId": "com.oubata.colorlink",
+  "appName": "Color Link",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#FFFFFF"
+  }
+}
