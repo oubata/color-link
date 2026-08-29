@@ -3,15 +3,16 @@ import {
   freshStart,
   seedSolved,
   sleep,
+  solveWithHints,
   waitForScreen,
 } from '../helpers.mjs';
 
 /**
  * In the page: find the dots, pair them by colour, and drag each pair along a
  * breadth-first SHORTEST route rather than the intended one. That joins every
- * pair while leaving cells empty, which is exactly the state the win rule now
- * accepts. Greedy routing in a fixed order can block itself, so the caller
- * tries several boards.
+ * pair while leaving cells empty, which is exactly the state the win rule must
+ * reject. Greedy routing in a fixed order can block itself, so the caller tries
+ * several boards until one joins every pair.
  */
 const PLAY_SHORTEST = `
   const canvas = document.querySelector('.board');
@@ -93,8 +94,8 @@ const READ_STATE = `
 `;
 
 /**
- * The win rule as Tob settled it: connecting every pair is enough and the board
- * need not be full. Spec assumption 4, spec 15 open question 2.
+ * Criterion 11: joining every pair is not enough — the board must also be full.
+ * Spec assumption 4, confirmed against spec 15 open question 2.
  */
 export default {
   name: 'win rule',
@@ -154,56 +155,29 @@ export default {
 
     if (usedLevel === 0) return results;
 
-    // Drawing each colour once with no hint also earns the Perfect badge, so
-    // the card legitimately reads either way.
     check(
-      'joining every pair wins, with the board left unfilled',
-      (state.card === 'Solved' || state.card === 'Perfect') &&
-        state.filled < 100,
+      'every pair joined but the board unfilled does NOT win',
+      state.card === null && state.filled < 100,
       `${state.lines}, ${state.filled}% filled, card = ${state.card}`,
+    );
+    await shot('30-all-joined-not-won');
+
+    // Now fill the rest. Hint replaces each short route with the solution one,
+    // which is what picks up the stranded cells.
+    await solveWithHints(page);
+    const finished = await page.evaluate(READ_STATE);
+    check(
+      'filling the last cells then wins',
+      (finished.card === 'Solved' || finished.card === 'Perfect') &&
+        finished.filled === 100,
+      `${finished.filled}% filled, card = ${finished.card}`,
     );
     check(
       'the won card offers the next level',
-      state.buttons[0] === 'Next level',
-      state.buttons.join(','),
+      finished.buttons[0] === 'Next level',
+      finished.buttons.join(','),
     );
-    // Worth recording plainly: this is what the rule change costs. The board is
-    // left with holes and the level still counts as solved.
-    check(
-      'coverage is still reported, it is just no longer a gate',
-      Number.isFinite(state.filled),
-      `${state.filled}% covered at the moment of the win`,
-    );
-    await shot('30-won-without-full-coverage');
-
-    await page.evaluate(`
-      [...document.querySelectorAll('.modal__panel button')]
-        .find(b => b.textContent === 'Next level').click();
-      return 1;
-    `);
-    await sleep(500);
-    const next = await page.evaluate(
-      `return document.querySelector('.topbar__title')?.textContent ?? null;`,
-    );
-    check(
-      'next level opens straight from the card',
-      next === `Normal · Level ${usedLevel + 1}`,
-      String(next),
-    );
-
-    // One pair short must still not win.
-    await page.evaluate(`
-      [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint').click();
-      return 1;
-    `);
-    await sleep(700);
-    const partial = await page.evaluate(READ_STATE);
-    check(
-      'one connected pair out of many does not win',
-      partial.card === null && !partial.lines.startsWith('Lines 0/'),
-      `${partial.lines}, card = ${partial.card}`,
-    );
+    await shot('31-won-full-coverage');
 
     return results;
   },

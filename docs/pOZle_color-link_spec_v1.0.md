@@ -843,24 +843,29 @@ reloaded and a level played to a solve. Unit tests total 188.
 
 ### Rule changes after first phone test (Tob, 28 August 2026)
 
-**Open question 2 settled: full coverage is no longer required to win.** Spec
-assumption 4 required 100% cell coverage and spec 15 listed the alternative as
-an open question. Tob chose the alternative: a level is solved once every pair
-is connected. `WIN_REQUIRES_FULL_COVERAGE` in `src/engine/queries.ts` is the
-one line that reverses it.
+**Open question 2 settled: full coverage stays required.** Spec assumption 4
+required 100% cell coverage and spec 15 listed the alternative as an open
+question. It was briefly changed to "every pair connected is enough" and then
+reverted the same day: the board must be filled, as the spec always said.
+`WIN_REQUIRES_FULL_COVERAGE` in `src/engine/queries.ts` is the single line
+that expresses it, and it is `true`.
 
-What this costs, stated plainly because it is not obvious: the verification
-suite joins every pair along breadth-first _shortest_ routes and now wins
-ordinary Normal boards at 83% coverage. So a player can ignore the board and
-route each pair the short way. The tiling constraint that spec 1 calls the
-"aha" — _you are not routing lines, you are tiling the board with them_ — no
-longer bites, and the difficulty ladder in spec 3 now varies mainly by how many
-pairs must be joined rather than by how hard the board is to fill. The coverage
-percentage is still shown in the HUD; it is feedback now, not a gate.
+Why the revert was right, from the evidence gathered while the loose rule was
+in place: the verification suite joins every pair along breadth-first shortest
+routes and won ordinary Normal boards at 83% coverage. A player could ignore
+the board entirely and route each pair the short way, which removes the tiling
+constraint spec 1 calls the "aha" — _you are not routing lines, you are tiling
+the board with them_ — and flattens the difficulty ladder in spec 3 into a
+count of pairs.
 
-The generator is untouched, so every level still _has_ a full-coverage solution
-and `GENERATOR_VERSION` stays at 1. Restoring the old rule is a one-line change
-that invalidates no saved progress.
+All 600 levels are confirmed completable under this rule.
+`tests/generator/completability.test.ts` generates every level, drags each
+solution path through the engine exactly as a player would, and asserts 100%
+coverage and `won == true`. Every tier reports 100/100 solvable at a minimum
+coverage of 100%. This holds by construction — the generator starts from a
+partition of the whole board — but it is now asserted rather than assumed.
+`GENERATOR_VERSION` never changed, so no level and no saved progress was
+affected by either the change or the revert.
 
 **Levels now open one at a time.** This overrides spec assumption 8 ("within a
 tier all 100 levels are playable in any order") and spec 14.3, which put

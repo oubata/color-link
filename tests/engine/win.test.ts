@@ -22,7 +22,7 @@ describe('win condition (spec 5.3)', () => {
     expect(coveragePercent(EASY_001, engine.paths)).toBe(100);
   });
 
-  it('is won once every pair is connected, even with cells left empty', () => {
+  it('is not won while a single cell is uncovered, even with every pair connected', () => {
     const engine = new Engine(TINY_3x3);
     drawPath(engine, TINY_3x3.solution[0] ?? []);
     // Colour 1 takes the short way home, stranding (1,1) and (2,1).
@@ -33,22 +33,26 @@ describe('win condition (spec 5.3)', () => {
 
     expect(completedCount(TINY_3x3, engine.paths)).toBe(2);
     expect(occupiedCount(TINY_3x3, engine.paths)).toBe(7);
-    expect(engine.won).toBe(true);
+    expect(coveragePercent(TINY_3x3, engine.paths)).toBe(77);
+    expect(engine.won).toBe(false);
   });
 
-  it('still reports the coverage it no longer requires', () => {
+  it('is won once the stranded cells are picked up', () => {
     const engine = new Engine(TINY_3x3);
     drawPath(engine, TINY_3x3.solution[0] ?? []);
     drawPath(engine, [
       [1, 0],
       [2, 0],
     ]);
-    // Won on 7 of 9 cells: the HUD keeps showing the gap, it just isn't a gate.
+    expect(engine.won).toBe(false);
+
+    // Redraw colour 1 the long way, through the cells it had skipped.
+    drawPath(engine, TINY_3x3.solution[1] ?? []);
     expect(engine.won).toBe(true);
-    expect(coveragePercent(TINY_3x3, engine.paths)).toBe(77);
+    expect(coveragePercent(TINY_3x3, engine.paths)).toBe(100);
   });
 
-  it('the full solution also wins, and covers the board', () => {
+  it('the full solution wins and covers the board', () => {
     const engine = new Engine(TINY_3x3);
     for (const path of TINY_3x3.solution) drawPath(engine, path);
     expect(engine.won).toBe(true);

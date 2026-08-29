@@ -81,13 +81,16 @@ export function completedCount(level: Level, paths: Paths): number {
 /**
  * Whether the board must also be full to win.
  *
- * Spec assumption 4 required it and spec 15 listed it as open question 2.
- * Tob settled it the other way: connecting every pair is enough. Flip this
- * back to `true` to restore the tiling puzzle described in spec 1.
+ * Spec assumption 4 required it, spec 15 listed it as open question 2, and Tob
+ * settled it back on the spec's side: the board must be filled. This is the
+ * tiling puzzle spec 1 describes, where the empty cells are the real
+ * constraint. Every generated level has a full-coverage solution by
+ * construction, and all 600 are replayed against this rule in
+ * `tests/generator/all-levels.test.ts`.
  */
-export const WIN_REQUIRES_FULL_COVERAGE = false;
+export const WIN_REQUIRES_FULL_COVERAGE = true;
 
-/** Spec 5.3, as settled: every pair connected. */
+/** Spec 5.3: every pair connected AND every cell covered. */
 export function isWon(level: Level, paths: Paths): boolean {
   if (completedCount(level, paths) !== level.pairs.length) return false;
   if (!WIN_REQUIRES_FULL_COVERAGE) return true;
