@@ -23,12 +23,14 @@ export const ICONS = {
   restart: icon(
     '<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4v4h4"/>',
   ),
+  /*
+   * A gear: eight trapezoidal teeth around the body with a hole through the
+   * middle. Radial spokes off a plain ring, which is what this was, read as a
+   * wheel rather than a gear.
+   */
   gear: icon(
-    '<circle cx="12" cy="12" r="2.5"/>' +
-      '<circle cx="12" cy="12" r="6"/>' +
-      '<path d="M18 12h2M6 12H4M12 18v2M12 6V4' +
-      'M16.24 16.24l1.42 1.42M7.76 7.76 6.34 6.34' +
-      'M7.76 16.24l-1.42 1.42M16.24 7.76l1.42-1.42"/>',
+    '<path d="M12.00 1.60L14.87 2.00L14.96 4.68L16.97 5.86L19.35 4.65L21.10 6.96L19.27 8.91L19.86 11.17L22.40 12.00L22.00 14.87L19.32 14.96L18.14 16.97L19.35 19.35L17.04 21.10L15.09 19.27L12.83 19.86L12.00 22.40L9.13 22.00L9.04 19.32L7.03 18.14L4.65 19.35L2.90 17.04L4.73 15.09L4.14 12.83L1.60 12.00L2.00 9.13L4.68 9.04L5.86 7.03L4.65 4.65L6.96 2.90L8.91 4.73L11.17 4.14Z"/>' +
+      '<circle cx="12" cy="12" r="4.2"/>',
   ),
   lock: icon(
     '<rect x="4.5" y="10.5" width="15" height="10" rx="2"/>' +
