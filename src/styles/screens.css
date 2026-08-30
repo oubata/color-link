@@ -154,6 +154,22 @@
   border-bottom: 1px solid var(--hairline);
 }
 
+/*
+ * Each tier carries its own colour, so the ladder reads at a glance: a rail
+ * down the leading edge, a light wash behind the row, and the progress bar to
+ * match. Colour rather than chrome — no gradient, no shadow, and the name
+ * stays in the text colour, where a palette hue would not clear contrast.
+ */
+.tier__button {
+  border-left: 4px solid var(--tier-color, transparent);
+  background: var(--tier-wash, transparent);
+}
+
+.tier__button:hover {
+  background: var(--tier-wash, var(--cell-bg));
+  filter: brightness(0.97);
+}
+
 .tier__button {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -164,12 +180,8 @@
   align-items: baseline;
   column-gap: var(--space-3);
   width: 100%;
-  padding: var(--space-3) var(--space-2);
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-3);
   text-align: left;
-}
-
-.tier__button:hover {
-  background: var(--cell-bg);
 }
 
 .tier--locked {
@@ -208,7 +220,7 @@
 
 .tier__bar-fill {
   height: 100%;
-  background: var(--accent);
+  background: var(--tier-color, var(--accent));
 }
 
 .tier__lock {

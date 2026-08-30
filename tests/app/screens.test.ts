@@ -7,6 +7,7 @@ import { createLevelSelect } from '../../src/app/screens/LevelSelect';
 import { recordSolve } from '../../src/app/progress';
 import { defaultProgress, type Progress } from '../../src/storage/persistence';
 import type { TierId } from '../../src/engine/types';
+import { PATH_PALETTE, withAlpha } from '../../src/render/theme';
 
 const AT = '2026-08-27T10:00:00.000Z';
 
@@ -254,5 +255,45 @@ describe('LevelSelect (spec 9, criterion 9)', () => {
     expect(ringed).toHaveLength(1);
     expect(ringed[0]?.textContent).toBe('1');
     root.remove();
+  });
+});
+
+describe('tier colours', () => {
+  function homeRows(progress: Progress): HTMLElement[] {
+    const view = createHome({
+      progress,
+      onTier: noop,
+      onHowToPlay: noop,
+      onSettings: noop,
+    });
+    document.body.append(view.el);
+    return [...view.el.querySelectorAll<HTMLElement>('.tier')];
+  }
+
+  it('gives every tier its own colour', () => {
+    const rows = homeRows(defaultProgress());
+    const colours = rows.map((r) => r.style.getPropertyValue('--tier-color'));
+    expect(colours.filter(Boolean)).toHaveLength(6);
+    expect(new Set(colours).size).toBe(6);
+    document.querySelectorAll('.screen--home').forEach((n) => n.remove());
+  });
+
+  it('matches the board palette rather than inventing colours', () => {
+    const rows = homeRows(defaultProgress());
+    for (const row of rows) {
+      const colour = row.style.getPropertyValue('--tier-color').trim();
+      expect(PATH_PALETTE).toContain(colour);
+    }
+    document.querySelectorAll('.screen--home').forEach((n) => n.remove());
+  });
+
+  it('gives each row a wash derived from its own colour', () => {
+    const rows = homeRows(defaultProgress());
+    for (const row of rows) {
+      const colour = row.style.getPropertyValue('--tier-color').trim();
+      const wash = row.style.getPropertyValue('--tier-wash').trim();
+      expect(wash).toBe(withAlpha(colour, 0.09));
+    }
+    document.querySelectorAll('.screen--home').forEach((n) => n.remove());
   });
 });

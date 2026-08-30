@@ -29,6 +29,24 @@ export const PATH_PALETTE: readonly string[] = [
   '#F4A3B5', // 15 blush
 ];
 
+/**
+ * A colour per tier, so the ladder reads at a glance on Home. Taken from the
+ * board palette rather than invented, and ordered as a difficulty ramp: green
+ * through blue and amber to red.
+ */
+const TIER_COLORS: Record<string, string> = {
+  easy: PATH_PALETTE[3] ?? '#3FA34D', // green
+  normal: PATH_PALETTE[1] ?? '#118AB2', // blue
+  hard: PATH_PALETTE[2] ?? '#F2B705', // yellow
+  extreme: PATH_PALETTE[5] ?? '#FF7A00', // orange
+  expert: PATH_PALETTE[4] ?? '#8338EC', // purple
+  master: PATH_PALETTE[0] ?? '#D62828', // red
+};
+
+export function tierColor(id: string): string {
+  return TIER_COLORS[id] ?? '#8C8C8C';
+}
+
 export function pathColor(index: number): string {
   return PATH_PALETTE[index % PATH_PALETTE.length] ?? '#8C8C8C';
 }

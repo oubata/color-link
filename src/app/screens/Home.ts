@@ -4,6 +4,7 @@ import type { Progress } from '../../storage/persistence';
 import { APP_NAME } from '../config';
 import { el, type View } from '../dom';
 import { APP_MARK, ICONS } from '../icons';
+import { tierColor, withAlpha } from '../../render/theme';
 import { isUnlocked, solvedCount } from '../progress';
 import { S } from '../strings';
 
@@ -95,5 +96,17 @@ function tierRow(tier: TierConfig, props: HomeProps): HTMLElement {
         content,
       );
 
-  return el('li', { class: `tier${unlocked ? '' : ' tier--locked'}` }, [inner]);
+  // The row carries its tier's colour as a custom property, so the rail, the
+  // wash and the progress bar all read from one value.
+  const color = tierColor(tier.id);
+  return el(
+    'li',
+    {
+      class: `tier${unlocked ? '' : ' tier--locked'}`,
+      attrs: {
+        style: `--tier-color: ${color}; --tier-wash: ${withAlpha(color, 0.09)}`,
+      },
+    },
+    [inner],
+  );
 }
