@@ -4,7 +4,7 @@ import {
   SAMPLE_CELL,
   seedSolved,
   sleep,
-  solveWithHints,
+  solveLevel,
   waitForScreen,
 } from '../helpers.mjs';
 
@@ -168,7 +168,7 @@ export default {
 
     // Now fill the rest. Hint replaces each short route with the solution one,
     // which is what picks up the stranded cells.
-    await solveWithHints(page);
+    await solveLevel(page);
     const finished = await page.evaluate(READ_STATE);
     check(
       'filling the last cells then wins',

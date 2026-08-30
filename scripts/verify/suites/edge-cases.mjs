@@ -3,7 +3,7 @@ import {
   freshStart,
   sleep,
   seedSolved,
-  solveWithHints,
+  solveLevel,
   stats,
   waitForScreen,
 } from '../helpers.mjs';
@@ -26,7 +26,7 @@ export default {
     await sleep(400);
     await page.evaluate(`
       [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint').click();
+        .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint')).click();
       return 1;
     `);
     await sleep(1300);
@@ -105,7 +105,7 @@ export default {
       String(lastLevel),
     );
 
-    await solveWithHints(page);
+    await solveLevel(page);
     const endOfTier = await page.evaluate(`
       const panel = document.querySelector('.modal__panel');
       return panel ? [...panel.querySelectorAll('button')].map(b => b.textContent) : null;

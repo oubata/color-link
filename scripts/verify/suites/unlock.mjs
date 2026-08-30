@@ -1,9 +1,4 @@
-import {
-  createChecks,
-  sleep,
-  solveWithHints,
-  waitForScreen,
-} from '../helpers.mjs';
+import { createChecks, sleep, solveLevel, waitForScreen } from '../helpers.mjs';
 
 /**
  * Criterion 8, precisely: seed 19 Hard solves, solve the 20th in the running
@@ -71,11 +66,15 @@ export default {
       String(playing),
     );
 
-    await solveWithHints(page);
+    await solveLevel(page);
     const solved = await page.evaluate(
       `return document.querySelector('.modal__title')?.textContent ?? null;`,
     );
-    check('it solves', solved === 'Solved', String(solved));
+    check(
+      'it solves',
+      solved === 'Solved' || solved === 'Perfect',
+      String(solved),
+    );
 
     // Back to Home through the UI. No reload anywhere after the seed.
     await page.evaluate(`

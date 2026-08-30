@@ -998,3 +998,37 @@ and the toggle sits in Settings. Sound keeps its default of on.
 
 This only affects fresh installs. A device that already has settings stored
 keeps whatever it had, since the stored value wins over the default.
+
+### Hints capped at two (Tob, 29 August 2026)
+
+Assumption 9 makes hints unlimited. They are now capped at two per level, the
+same for every tier. `MAX_HINTS_PER_LEVEL` lives in `src/engine/queries.ts`
+rather than `src/app/config.ts`, because the engine enforces it and may not
+import from `app/` — the same reason `WIN_REQUIRES_FULL_COVERAGE` sits beside
+it.
+
+**Restart does not refill the allowance.** Spec 5.2 already leaves `hintUsed`
+alone across a restart, and a restart that handed hints back would make the cap
+a formality: restart, hint twice, repeat. Replaying a finished level builds a
+new engine, so that does start again at two, which is the right boundary — a
+fresh attempt, not a laundered one.
+
+**The toolbar shows what is left.** The Hint button reads "Hint 2", counts down,
+and goes flat at zero the way Undo does with an empty undo stack. A cap the
+player only discovers by finding the button greyed out would be worse than no
+cap at all. Its `aria-label` carries the same, as "Hint, 2 left".
+
+**A consequence worth recording: this broke the verification harness.** Every
+suite finished a board by pressing Hint until it was solved, which two hints
+can no longer do. The app now exposes `window.__colorlink.solve()` behind
+`import.meta.env.DEV`, which replays the level's own solution exactly as a
+player would drag it. Vite strips the branch from a production build: the
+assignment appears in no production chunk, so no handle ships. The method it
+calls survives as an unreachable class method.
+
+`npm run verify:pwa` runs against the production bundle, where that hook does
+not exist, so its offline check no longer completes a level. It now asserts
+that the game _runs_ offline — a level generates, the engine responds, the
+board redraws, the HUD follows, and the hint allowance runs out — rather than
+that a level can be _completed_ offline. Completing one is covered against the
+dev server, and nothing on the win path touches the network.

@@ -79,6 +79,20 @@ export function completedCount(level: Level, paths: Paths): number {
 }
 
 /**
+ * How many hints a level allows, all tiers alike.
+ *
+ * Spec 2.9 makes hints unlimited; Tob capped them. It lives here rather than in
+ * `src/app/config.ts` because the engine enforces it and may not import from
+ * `app/`, the same reason `WIN_REQUIRES_FULL_COVERAGE` sits below.
+ *
+ * The tally is not refilled by restart. Spec 5.2 already leaves `hintUsed`
+ * alone there, and a restart that handed back hints would make the cap
+ * meaningless. Replaying a finished level builds a new engine, so that does
+ * start again at two.
+ */
+export const MAX_HINTS_PER_LEVEL = 2;
+
+/**
  * Whether the board must also be full to win.
  *
  * Spec assumption 4 required it, spec 15 listed it as open question 2, and Tob

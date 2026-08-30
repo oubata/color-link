@@ -84,22 +84,27 @@ export function focused(page) {
   `);
 }
 
-/** Press Hint until the board is solved. Returns whether the card appeared. */
-export async function solveWithHints(page, limit = 20) {
-  for (let i = 0; i < limit; i++) {
-    const done = await page.evaluate(
-      `return document.querySelector('.modal') !== null;`,
+/**
+ * Finish the open level. Returns whether the results card appeared.
+ *
+ * Hints are capped at two, so pressing Hint can no longer solve a board. The
+ * dev server exposes `__colorlink.solve()`, which replays the level's own
+ * solution exactly as a player would drag it. A production build does not
+ * expose it, which is why `verify:pwa` does not use this.
+ */
+export async function solveLevel(page) {
+  const solved = await page.evaluate(`
+    if (document.querySelector('.modal') !== null) return 'already';
+    const hook = window.__colorlink;
+    if (!hook || typeof hook.solve !== 'function') return 'no hook';
+    return hook.solve() ? 'solved' : 'refused';
+  `);
+  if (solved === 'no hook') {
+    throw new Error(
+      'window.__colorlink.solve is missing: is this a production build?',
     );
-    if (done) return true;
-    await page.evaluate(`
-      const hint = [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint');
-      if (hint && !hint.disabled) hint.click();
-      return 1;
-    `);
-    await sleep(180);
   }
-  await sleep(800);
+  await sleep(600);
   return page.evaluate(`return document.querySelector('.modal') !== null;`);
 }
 

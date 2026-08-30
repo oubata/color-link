@@ -32,6 +32,14 @@ export const S = {
   statFilled: (percent: number) => `Filled ${percent}%`,
   undo: 'Undo',
   hint: 'Hint',
+  /** The toolbar shows what is left, so the cap is visible before it bites. */
+  hintWithCount: (remaining: number) => `Hint ${remaining}`,
+  hintLabel: (remaining: number) =>
+    remaining === 0
+      ? 'Hint, none left on this level'
+      : remaining === 1
+        ? 'Hint, 1 left'
+        : `Hint, ${remaining} left`,
   restart: 'Restart',
   boardLabel: (tierName: string, index: number, size: number, pairs: number) =>
     `${tierName} level ${index}. ${size} by ${size} board with ${pairs} colour pairs.`,

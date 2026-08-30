@@ -242,7 +242,7 @@ try {
     if (done) break;
     await page.evaluate(`
       const hint = [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint');
+        .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint'));
       if (hint && !hint.disabled) hint.click();
       return 1;
     `);
@@ -322,29 +322,49 @@ try {
     String(label),
   );
 
-  for (let i = 0; i < 12; i++) {
-    const done = await page.evaluate(
-      `return document.querySelector('.modal') !== null;`,
-    );
-    if (done) break;
+  /*
+   * This is the production bundle, which carries no dev solve hook, and hints
+   * are capped at two - not enough to finish a board. So this asserts the game
+   * runs offline rather than that it can be completed offline: a level
+   * generates, the engine responds, the board redraws and the HUD follows.
+   * Completing a level is covered against the dev server, where nothing about
+   * the win path touches the network anyway.
+   */
+  const hudBefore = await page.evaluate(`
+    const stats = [...document.querySelectorAll('.stat')].map(s => s.textContent);
+    return { lines: stats[0], filled: stats[1] };
+  `);
+  for (let i = 0; i < 2; i++) {
     await page.evaluate(`
       const hint = [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint');
+        .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint'));
       if (hint && !hint.disabled) hint.click();
       return 1;
     `);
-    await sleep(200);
+    await sleep(400);
   }
-  await sleep(600);
-  const solved = await page.evaluate(
-    `return document.querySelector('.modal__title')?.textContent ?? null;`,
+  const hudAfter = await page.evaluate(`
+    const stats = [...document.querySelectorAll('.stat')].map(s => s.textContent);
+    const hint = [...document.querySelectorAll('.tool')]
+      .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint'));
+    return {
+      lines: stats[0],
+      filled: stats[1],
+      hintLabel: hint ? hint.getAttribute('aria-label') : null,
+      hintDisabled: hint ? hint.disabled : null,
+    };
+  `);
+  check(
+    'the board responds and redraws offline',
+    hudAfter.lines !== hudBefore.lines && hudAfter.filled !== hudBefore.filled,
+    `${hudBefore.lines}/${hudBefore.filled} -> ${hudAfter.lines}/${hudAfter.filled}`,
   );
   check(
-    'a whole level can be solved offline',
-    solved === 'Solved',
-    String(solved),
+    'the hint allowance runs out offline and the button goes flat',
+    hudAfter.hintDisabled === true,
+    `${hudAfter.hintLabel}, disabled=${hudAfter.hintDisabled}`,
   );
-  await page.screenshot(join(SHOTS, '50-offline-solved.png'));
+  await page.screenshot(join(SHOTS, '50-offline-played.png'));
 
   const stored = await page.evaluate(
     `return Object.keys(localStorage).length;`,

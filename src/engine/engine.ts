@@ -11,7 +11,7 @@ import {
   type Level,
   type Paths,
 } from './types';
-import { isPathComplete, isWon } from './queries';
+import { isPathComplete, isWon, MAX_HINTS_PER_LEVEL } from './queries';
 
 /**
  * The rules of pOZ-Link, exactly as tabulated in spec 5.2.
@@ -72,6 +72,11 @@ export class Engine {
   /** How many times hint() has been taken on this level. */
   get hintCount(): number {
     return this.hintCounter;
+  }
+
+  /** Hints still available on this level. */
+  get hintsRemaining(): number {
+    return Math.max(0, MAX_HINTS_PER_LEVEL - this.hintCounter);
   }
 
   get won(): boolean {
@@ -217,6 +222,7 @@ export class Engine {
   /** Draw the solution for the lowest colour that is not already solution-shaped. */
   hint(): boolean {
     if (this.strokeActive || this.wonFlag) return false;
+    if (this.hintsRemaining === 0) return false;
     const color = this.firstUnsolvedColor();
     if (color === EMPTY) return false;
 

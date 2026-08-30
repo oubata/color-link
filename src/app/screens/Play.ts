@@ -339,8 +339,40 @@ export class PlayView implements View {
 
     const busy = this.engine.strokeActive || this.engine.won;
     setDisabled(this.undoButton, busy || !this.engine.canUndo);
-    setDisabled(this.hintButton, busy);
     setDisabled(this.restartButton, busy);
+
+    // Hints are capped, so the button carries what is left and goes flat when
+    // there is none, the same way Undo does with an empty stack.
+    const remaining = this.engine.hintsRemaining;
+    setDisabled(this.hintButton, busy || remaining === 0);
+    setToolLabel(
+      this.hintButton,
+      S.hintWithCount(remaining),
+      S.hintLabel(remaining),
+    );
+  }
+
+  /**
+   * Replay the level's own solution, as a player would drag it.
+   *
+   * Only reachable through the dev-only hook in App, and only exists because
+   * hints are capped at two: the verification harness used to finish a board by
+   * pressing Hint until it was solved, and no longer can.
+   */
+  solveFromSolution(): boolean {
+    if (this.engine.won) return true;
+    this.engine.restart();
+    for (const path of this.props.level.solution) {
+      const first = path[0];
+      if (!first) continue;
+      this.engine.begin(first);
+      for (let i = 1; i < path.length; i++) {
+        const cell = path[i];
+        if (cell) this.engine.extend(cell);
+      }
+      this.engine.end();
+    }
+    return this.engine.won;
   }
 
   private updateTime(): void {
@@ -366,6 +398,19 @@ function toolButton(
     ],
   );
   return button;
+}
+
+/** Update a tool's visible text and the label a screen reader announces. */
+function setToolLabel(
+  button: HTMLButtonElement,
+  text: string,
+  ariaLabel: string,
+): void {
+  const label = button.querySelector('.tool__label');
+  if (label && label.textContent !== text) label.textContent = text;
+  if (button.getAttribute('aria-label') !== ariaLabel) {
+    button.setAttribute('aria-label', ariaLabel);
+  }
 }
 
 function setDisabled(button: HTMLButtonElement, disabled: boolean): void {

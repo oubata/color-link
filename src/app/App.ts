@@ -85,6 +85,17 @@ export class App {
     window.addEventListener('popstate', () => this.onPopState());
     void this.wireNativeBackButton();
 
+    /*
+     * A dev-only handle for the verification harness. Hints are capped at two,
+     * so pressing Hint can no longer finish a board. Vite strips this branch
+     * from a production build, so nothing ships with it.
+     */
+    if (import.meta.env.DEV) {
+      (window as unknown as { __colorlink?: unknown }).__colorlink = {
+        solve: (): boolean => this.play?.solveFromSolution() ?? false,
+      };
+    }
+
     const resumed = this.persistence.loadInProgress();
     const target = resumed ? locateLevel(resumed.levelId) : null;
     if (resumed && target) {

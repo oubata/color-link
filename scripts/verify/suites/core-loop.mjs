@@ -3,6 +3,7 @@ import {
   filled,
   freshStart,
   sleep,
+  solveLevel,
   stats,
   waitForScreen,
 } from '../helpers.mjs';
@@ -130,7 +131,7 @@ export default {
     // ---- Hint, then solve (criterion 12) -------------------------------
     await page.evaluate(`
       [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint').click();
+        .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint')).click();
       return 1;
     `);
     await sleep(1400);
@@ -141,20 +142,8 @@ export default {
       afterHint.join(' '),
     );
 
-    for (let i = 0; i < 20; i++) {
-      const done = await page.evaluate(
-        `return document.querySelector('.modal') !== null;`,
-      );
-      if (done) break;
-      await page.evaluate(`
-        const hint = [...document.querySelectorAll('.tool')]
-          .find(b => b.getAttribute('aria-label') === 'Hint');
-        if (hint && !hint.disabled) hint.click();
-        return 1;
-      `);
-      await sleep(200);
-    }
-    await sleep(700);
+    // Hints are capped at two, so finish through the dev-only solve hook.
+    await solveLevel(page);
 
     const won = await page.evaluate(`
       const modal = document.querySelector('.modal__panel');
@@ -338,7 +327,7 @@ export default {
     await sleep(400);
     await page.evaluate(`
       [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint').click();
+        .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint')).click();
       return 1;
     `);
     await sleep(1500);
@@ -433,7 +422,7 @@ export default {
     const beforeHint = await filled(page);
     await page.evaluate(`
       [...document.querySelectorAll('.tool')]
-        .find(b => b.getAttribute('aria-label') === 'Hint').click();
+        .find(b => (b.getAttribute('aria-label') || '').startsWith('Hint')).click();
       return 1;
     `);
     await sleep(400);

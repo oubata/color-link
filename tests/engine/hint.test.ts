@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Engine } from '../../src/engine/engine';
+import { MAX_HINTS_PER_LEVEL } from '../../src/engine/queries';
 import { drawPath, EASY_001, TINY_3x3 } from '../fixtures';
 
 describe('hint (spec 5.2)', () => {
@@ -87,14 +88,44 @@ describe('hint tally', () => {
     const engine = new Engine(EASY_001);
     expect(engine.hintCount).toBe(0);
     expect(engine.hintUsed).toBe(false);
+    expect(engine.hintsRemaining).toBe(MAX_HINTS_PER_LEVEL);
 
     engine.hint();
     expect(engine.hintCount).toBe(1);
     expect(engine.hintUsed).toBe(true);
+    expect(engine.hintsRemaining).toBe(MAX_HINTS_PER_LEVEL - 1);
+  });
 
-    engine.hint();
-    engine.hint();
-    expect(engine.hintCount).toBe(3);
+  it('refuses a hint once the cap is reached', () => {
+    const engine = new Engine(EASY_001);
+    for (let i = 0; i < MAX_HINTS_PER_LEVEL; i++) {
+      expect(engine.hint()).toBe(true);
+    }
+    expect(engine.hintsRemaining).toBe(0);
+
+    const before = engine.snapshotPaths();
+    expect(engine.hint()).toBe(false);
+    expect(engine.hintCount).toBe(MAX_HINTS_PER_LEVEL);
+    // A refused hint must change nothing: no path, no move, no undo entry.
+    expect(engine.snapshotPaths()).toEqual(before);
+  });
+
+  it('does not hand hints back on restart', () => {
+    // Otherwise the cap is a formality: restart, hint twice, repeat.
+    const engine = new Engine(EASY_001);
+    for (let i = 0; i < MAX_HINTS_PER_LEVEL; i++) engine.hint();
+    engine.restart();
+    expect(engine.hintsRemaining).toBe(0);
+    expect(engine.hint()).toBe(false);
+  });
+
+  it('gives a fresh level its own allowance', () => {
+    const spent = new Engine(EASY_001);
+    for (let i = 0; i < MAX_HINTS_PER_LEVEL; i++) spent.hint();
+    expect(spent.hintsRemaining).toBe(0);
+
+    // Replay builds a new engine, which is what makes this the right boundary.
+    expect(new Engine(EASY_001).hintsRemaining).toBe(MAX_HINTS_PER_LEVEL);
   });
 
   it('keeps the tally through a restart, as hintUsed always did', () => {
@@ -102,9 +133,8 @@ describe('hint tally', () => {
     // or restarting would launder away the hints already taken.
     const engine = new Engine(EASY_001);
     engine.hint();
-    engine.hint();
     engine.restart();
-    expect(engine.hintCount).toBe(2);
+    expect(engine.hintCount).toBe(1);
     expect(engine.hintUsed).toBe(true);
   });
 
@@ -134,5 +164,6 @@ describe('hint tally', () => {
     engine.hint();
     engine.markHintUsed(1);
     expect(engine.hintCount).toBe(2);
+    expect(engine.hintsRemaining).toBe(0);
   });
 });

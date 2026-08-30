@@ -6,6 +6,7 @@ import {
   goHome,
   SAMPLE_CELL,
   sleep,
+  solveLevel,
   waitForScreen,
 } from '../helpers.mjs';
 
@@ -172,16 +173,12 @@ export default {
       `${afterHint}% -> ${afterRestart}%`,
     );
 
+    // Two presses of H is the whole allowance now, so check the key works and
+    // then finish through the solve hook.
     await page.evaluate(`document.querySelector('.board').focus(); return 1;`);
-    for (let i = 0; i < 14; i++) {
-      const done = await page.evaluate(
-        `return document.querySelector('.modal') !== null;`,
-      );
-      if (done) break;
-      await page.key('h');
-      await sleep(220);
-    }
-    await sleep(800);
+    await page.key('h');
+    await sleep(400);
+    await solveLevel(page);
     const solvedByKeyboard = await page.evaluate(`
       const panel = document.querySelector('.modal__panel');
       return panel ? panel.querySelector('.modal__title').textContent : null;
@@ -357,20 +354,7 @@ export default {
       `document.querySelectorAll('.level-tile')[0].click(); return 1;`,
     );
     await sleep(400);
-    for (let i = 0; i < 12; i++) {
-      const done = await page.evaluate(
-        `return document.querySelector('.modal') !== null;`,
-      );
-      if (done) break;
-      await page.evaluate(`
-        const hint = [...document.querySelectorAll('.tool')]
-          .find(b => b.getAttribute('aria-label') === 'Hint');
-        if (hint && !hint.disabled) hint.click();
-        return 1;
-      `);
-      await sleep(200);
-    }
-    await sleep(600);
+    await solveLevel(page);
     const during = page.requests.slice(before);
     check(
       'a whole level is played with no network request',
