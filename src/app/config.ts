@@ -46,6 +46,20 @@ export const ANIM = {
   hintPerCell: 30,
 } as const;
 
+/**
+ * Vibration patterns, in milliseconds.
+ *
+ * Spec 9 asks for 10ms on a connect and [10, 40, 20] on a win. Measured on a
+ * Galaxy A14 those play at exactly the length asked for and cannot be felt: a
+ * rotating-mass motor needs 20-30ms just to spin up, and Android scales touch
+ * haptics to LOW. Android's own touch feedback uses 45ms, which is the mark to
+ * hit. navigator.vibrate exposes no amplitude, so duration is the only lever.
+ */
+export const HAPTICS = {
+  connect: 40,
+  win: [45, 60, 90],
+} as const;
+
 /** Web Audio master gain (spec 10). */
 export const AUDIO_MASTER_GAIN = 0.25;
 

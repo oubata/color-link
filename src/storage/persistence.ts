@@ -61,7 +61,10 @@ export function defaultSettings(): Settings {
   return {
     theme: 'system',
     sound: true,
-    haptics: true,
+    // Spec 2.12 defaults this on. Off is the kinder first run: a buzz on every
+    // connected pair is a strong opinion to impose before anyone asks for it,
+    // and the toggle is right there in Settings.
+    haptics: false,
     colorBlind: false,
     reducedMotion: 'system',
   };

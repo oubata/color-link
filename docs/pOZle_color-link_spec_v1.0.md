@@ -965,3 +965,36 @@ The verification suites locate endpoints by sampling the canvas, and were
 sampling each cell's centre — which is now a hole. `SAMPLE_CELL` in
 `scripts/verify/helpers.mjs` samples the ring as well and keeps the most
 saturated hit.
+
+### Haptics on real hardware (Tob, 29 August 2026)
+
+Assumption 12 defaults haptics on and section 9 gives the patterns as 10ms on a
+connected pair and [10, 40, 20] on a win. Neither survived contact with a phone.
+
+**The permission was missing.** Capacitor's default Android manifest does not
+declare `android.permission.VIBRATE`, so nothing the app asked for ever reached
+the vibrator. What made this hard to spot from the code: the WebView still
+exposes `navigator.vibrate`, and it still returns `true`. `Haptics.available`
+passed, the Settings row appeared, the buzz branch ran, and the device sat
+still. Only Android's own vibrator service, which logged nothing at all, gave
+it away. The permission is now declared; it is a normal one, granted at install
+with no runtime prompt.
+
+**The patterns were below the hardware's floor.** With the permission in place a
+Galaxy A14 played the spec's values exactly as asked - 10ms and 20ms steps -
+and they could not be felt. A rotating-mass motor needs 20-30ms just to spin
+up, and Android scales game haptics to LOW. Android's own touch feedback uses
+45ms, which is the mark to hit. `navigator.vibrate` exposes no amplitude, so
+duration is the only lever available.
+
+The patterns are now tunables in `src/app/config.ts`: 40ms on a connected pair,
+[45, 60, 90] on a win. Confirmed in play on the device, and confirmed felt.
+A phone with a linear actuator would render the spec's 10ms crisply, so this is
+a floor for the weakest hardware rather than a correction of taste.
+
+**Haptics now default off**, against assumption 12. A buzz on every connected
+pair is a strong opinion to impose on a first run before anyone asks for it,
+and the toggle sits in Settings. Sound keeps its default of on.
+
+This only affects fresh installs. A device that already has settings stored
+keeps whatever it had, since the stored value wins over the default.

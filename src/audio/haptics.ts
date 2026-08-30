@@ -1,4 +1,6 @@
-/** Vibration patterns from spec 9, where the device supports them. */
+import { HAPTICS } from '../app/config';
+
+/** Vibration patterns from config, where the device supports them. */
 export class Haptics {
   static get available(): boolean {
     return (
@@ -8,11 +10,11 @@ export class Haptics {
   }
 
   connect(): void {
-    this.pulse(10);
+    this.pulse(HAPTICS.connect);
   }
 
   win(): void {
-    this.pulse([10, 40, 20]);
+    this.pulse([...HAPTICS.win]);
   }
 
   private pulse(pattern: number | number[]): void {

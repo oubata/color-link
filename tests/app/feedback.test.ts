@@ -31,7 +31,11 @@ function spies(): {
 describe('feedback routing (spec 9)', () => {
   it('plays sound and haptics when both are on', () => {
     const { sfx, haptics, calls } = spies();
-    const feedback = createFeedback(sfx, haptics, () => defaultSettings());
+    const feedback = createFeedback(sfx, haptics, () => ({
+      ...defaultSettings(),
+      sound: true,
+      haptics: true,
+    }));
 
     feedback.connect();
     feedback.cut();
@@ -50,7 +54,11 @@ describe('feedback routing (spec 9)', () => {
 
   it('stays silent with sound off but still buzzes', () => {
     const { sfx, haptics, calls } = spies();
-    const settings: Settings = { ...defaultSettings(), sound: false };
+    const settings: Settings = {
+      ...defaultSettings(),
+      sound: false,
+      haptics: true,
+    };
     const feedback = createFeedback(sfx, haptics, () => settings);
 
     feedback.connect();
@@ -89,5 +97,23 @@ describe('feedback routing (spec 9)', () => {
       silentFeedback.tick();
       silentFeedback.unlock();
     }).not.toThrow();
+  });
+});
+
+describe('settings defaults', () => {
+  it('starts a fresh install with haptics off and sound on', () => {
+    const defaults = defaultSettings();
+    expect(defaults.haptics).toBe(false);
+    expect(defaults.sound).toBe(true);
+  });
+
+  it('stays silent on a fresh install where haptics are concerned', () => {
+    const { sfx, haptics, calls } = spies();
+    const feedback = createFeedback(sfx, haptics, () => defaultSettings());
+
+    feedback.connect();
+    feedback.win();
+
+    expect(calls).toEqual(['sfx.connect', 'sfx.win']);
   });
 });
