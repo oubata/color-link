@@ -6,4 +6,5 @@ dist
 dist-ssr
 node_modules
 scripts/**/.*-profile/
+scripts/device/progress-backup.json
 scripts/verify/screenshots

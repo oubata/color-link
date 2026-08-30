@@ -23,17 +23,18 @@ in `localStorage`.
 
 ## Commands
 
-| Command              | What it does                                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`        | Dev server with hot reload                                                                                      |
-| `npm run build`      | Type-check, then a production bundle in `dist/`                                                                 |
-| `npm run preview`    | Serve the built `dist/` locally                                                                                 |
-| `npm test`           | 188 unit tests (Vitest)                                                                                         |
-| `npm run verify`     | Drives a headless browser through the app and checks the spec 12 criteria that can only be judged by running it |
-| `npm run verify:pwa` | Builds, then checks the manifest, icons, service worker, and a real offline reload                              |
-| `npm run icons`      | Re-rasterises the PNG icons from the artwork in `scripts/icons/generate.mjs`                                    |
-| `npm run apk`        | Builds the Android debug APK (needs a JDK and the Android SDK)                                                  |
-| `npm run format`     | Prettier                                                                                                        |
+| Command                 | What it does                                                                                                    |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Dev server with hot reload                                                                                      |
+| `npm run build`         | Type-check, then a production bundle in `dist/`                                                                 |
+| `npm run preview`       | Serve the built `dist/` locally                                                                                 |
+| `npm test`              | 188 unit tests (Vitest)                                                                                         |
+| `npm run verify`        | Drives a headless browser through the app and checks the spec 12 criteria that can only be judged by running it |
+| `npm run verify:pwa`    | Builds, then checks the manifest, icons, service worker, and a real offline reload                              |
+| `npm run icons`         | Re-rasterises the PNG icons from the artwork in `scripts/icons/generate.mjs`                                    |
+| `npm run apk`           | Builds the Android debug APK (needs a JDK and the Android SDK)                                                  |
+| `npm run unlock:device` | Unlocks every tier on a connected phone, for testing                                                            |
+| `npm run format`        | Prettier                                                                                                        |
 
 `npm run verify` and `npm run verify:pwa` need a Chromium-based browser. They
 look for Edge and Chrome in the usual places; set `CHROME_PATH` if yours is
@@ -146,6 +147,23 @@ Two things worth knowing about the native build:
 - The launcher icons come from `npm run icons`, same artwork as the web icons.
   Edit `scripts/icons/generate.mjs` and re-run it; do not hand-edit the PNGs.
 
+### Testing the later tiers
+
+Extreme, Expert and Master are gated behind 20 solves in the tier before them,
+which is a long way to play to reach them. With the app open on a connected
+phone and its WebView forwarded:
+
+```bash
+PID=$(adb shell pidof com.oubata.colorlink)
+adb forward tcp:9222 localabstract:webview_devtools_remote_$PID
+npm run unlock:device
+```
+
+It seeds the gate tiers over adb, so nothing in the repo changes and no rebuild
+is needed. It backs the phone's real progress up first;
+`npm run unlock:device -- --restore` puts it back, and Settings → Reset
+progress clears everything. The backup is device state and stays out of git.
+
 The Android back button is wired to the app's own back navigation, via a spare
 history entry (`syncHistory` in `src/app/App.ts`). Without it, back would close
 the app from any screen. The same code makes the browser's back button work on
@@ -165,6 +183,7 @@ tests/           Mirrors src/.
 scripts/verify/  Browser checks for the acceptance criteria.
 scripts/icons/   Icon rasteriser, for the web and Android launcher icons.
 scripts/android/ APK build.
+scripts/device/  Test helpers that drive the app on a connected phone.
 android/        Capacitor project: the APK wrapper around dist/.
 ```
 

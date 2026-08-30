@@ -14,7 +14,8 @@
     "icons": "node scripts/icons/generate.mjs",
     "verify:pwa": "node scripts/verify/pwa.mjs",
     "build:native": "vite build --mode native",
-    "apk": "node scripts/android/build-apk.mjs"
+    "apk": "node scripts/android/build-apk.mjs",
+    "unlock:device": "node scripts/device/unlock-tiers.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "^6.2.1",
