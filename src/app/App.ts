@@ -83,6 +83,7 @@ export class App {
     });
     document.addEventListener('visibilitychange', () => this.onVisibility());
     window.addEventListener('popstate', () => this.onPopState());
+    void this.wireNativeBackButton();
 
     const resumed = this.persistence.loadInProgress();
     const target = resumed ? locateLevel(resumed.levelId) : null;
@@ -300,6 +301,32 @@ export class App {
 
   private get atRoot(): boolean {
     return this.machine.screen.name === 'home' && this.machine.modal === null;
+  }
+
+  /**
+   * Android's back button never reaches the popstate above. Capacitor 6 ships
+   * no back handling of its own, so `MainActivity` inherits the default and
+   * finishes the activity: back closed the app from any screen. The App plugin
+   * is what puts the press in reach of JS.
+   *
+   * Imported dynamically and only on a device, so the web build never loads it.
+   */
+  private async wireNativeBackButton(): Promise<void> {
+    const capacitor = (
+      window as unknown as {
+        Capacitor?: { isNativePlatform?: () => boolean };
+      }
+    ).Capacitor;
+    if (!capacitor?.isNativePlatform?.()) return;
+
+    const { App: NativeApp } = await import('@capacitor/app');
+    await NativeApp.addListener('backButton', () => {
+      if (this.atRoot) {
+        void NativeApp.exitApp();
+        return;
+      }
+      this.goBack();
+    });
   }
 
   private syncHistory(): void {

@@ -38,4 +38,12 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        Haptics (spec 9). Without this the WebView's navigator.vibrate is
+        present and returns true, so the app's availability check passes and
+        the Settings row appears, but nothing ever reaches the vibrator.
+        A normal permission: granted at install, no runtime prompt.
+    -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>
