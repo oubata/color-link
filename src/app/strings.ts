@@ -33,7 +33,7 @@ export const S = {
   undo: 'Undo',
   hint: 'Hint',
   /** The toolbar shows what is left, so the cap is visible before it bites. */
-  hintWithCount: (remaining: number) => `Hint ${remaining}`,
+  hintWithCount: (remaining: number) => `Hint (${remaining})`,
   hintLabel: (remaining: number) =>
     remaining === 0
       ? 'Hint, none left on this level'
