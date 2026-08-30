@@ -34,7 +34,10 @@ export class Engine {
   private strokeColor = EMPTY;
   private strokeSnapshot: Cell[][] | null = null;
   private movesCount = 0;
+  /** Hints taken in the current attempt. Reset by restart. */
   private hintCounter = 0;
+  /** Whether this level has ever been hinted. Survives restart (spec 5.2). */
+  private hintWasUsed = false;
   private wonFlag = false;
   /** Bumped on every actual state change; drives the interpolation stop rule. */
   private mutations = 0;
@@ -66,7 +69,7 @@ export class Engine {
   }
 
   get hintUsed(): boolean {
-    return this.hintCounter > 0;
+    return this.hintWasUsed;
   }
 
   /** How many times hint() has been taken on this level. */
@@ -214,6 +217,10 @@ export class Engine {
     this.setPaths(this.level.pairs.map(() => []));
     this.undoStack = [];
     this.movesCount = 0;
+    // A restart is a fresh attempt at the level, so it gets the full hint
+    // allowance back. `hintWasUsed` deliberately does not reset: spec 5.2
+    // keeps it, which stops a restart laundering away the Perfect badge.
+    this.hintCounter = 0;
     this.wonFlag = false;
     this.mutations++;
     this.emit({ type: 'change' });
@@ -256,6 +263,7 @@ export class Engine {
     this.undoStack.push(snapshot);
     this.movesCount++;
     this.hintCounter++;
+    this.hintWasUsed = true;
     this.mutations++;
     this.emit({ type: 'pathCompleted', color });
     this.emit({ type: 'change' });
@@ -265,6 +273,7 @@ export class Engine {
 
   /** Restore the hint tally of a saved board. */
   markHintUsed(count = 1): void {
+    this.hintWasUsed = true;
     this.hintCounter = Math.max(
       this.hintCounter,
       Math.max(0, Math.trunc(count)),

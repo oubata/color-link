@@ -1007,11 +1007,20 @@ rather than `src/app/config.ts`, because the engine enforces it and may not
 import from `app/` — the same reason `WIN_REQUIRES_FULL_COVERAGE` sits beside
 it.
 
-**Restart does not refill the allowance.** Spec 5.2 already leaves `hintUsed`
-alone across a restart, and a restart that handed hints back would make the cap
-a formality: restart, hint twice, repeat. Replaying a finished level builds a
-new engine, so that does start again at two, which is the right boundary — a
-fresh attempt, not a laundered one.
+**Two hints per attempt at a level, and a restart is a new attempt.** The first
+version withheld hints across a restart, on the reasoning that refilling them
+made the cap a formality. Testing on the device showed that reasoning did not
+survive contact with the rest of the app: only one board is saved at a time
+(section 11.2 has a single `inProgress` key), so leaving a level and coming
+back already handed the allowance back. Restart behaving differently from
+revisiting was an inconsistency, not a safeguard. Both are now a fresh attempt
+at the level, worth two hints.
+
+`hintUsed` still survives a restart, exactly as spec 5.2 says. That is what
+stops a restart laundering away the Perfect badge, and it is a separate fact
+from the allowance: the engine keeps `hintWasUsed` (sticky, has this level ever
+been hinted) apart from `hintCounter` (this attempt's tally, and what the
+allowance is measured against).
 
 **The toolbar shows what is left.** The Hint button reads "Hint 2", counts down,
 and goes flat at zero the way Undo does with an empty undo stack. A cap the

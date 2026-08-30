@@ -110,13 +110,17 @@ describe('hint tally', () => {
     expect(engine.snapshotPaths()).toEqual(before);
   });
 
-  it('does not hand hints back on restart', () => {
-    // Otherwise the cap is a formality: restart, hint twice, repeat.
+  it('hands the allowance back on restart, as a fresh attempt', () => {
+    // Leaving a level and returning already refilled it, because only one
+    // board is saved at a time. Restart doing something different was the
+    // inconsistency; both are now a fresh attempt at the level.
     const engine = new Engine(EASY_001);
     for (let i = 0; i < MAX_HINTS_PER_LEVEL; i++) engine.hint();
-    engine.restart();
     expect(engine.hintsRemaining).toBe(0);
-    expect(engine.hint()).toBe(false);
+
+    engine.restart();
+    expect(engine.hintsRemaining).toBe(MAX_HINTS_PER_LEVEL);
+    expect(engine.hint()).toBe(true);
   });
 
   it('gives a fresh level its own allowance', () => {
@@ -128,14 +132,15 @@ describe('hint tally', () => {
     expect(new Engine(EASY_001).hintsRemaining).toBe(MAX_HINTS_PER_LEVEL);
   });
 
-  it('keeps the tally through a restart, as hintUsed always did', () => {
-    // Spec 5.2: restart leaves hintUsed alone. The count follows the same rule,
-    // or restarting would launder away the hints already taken.
+  it('still remembers the level was hinted after a restart', () => {
+    // Spec 5.2 keeps hintUsed across a restart, which is what stops a restart
+    // laundering away the Perfect badge. Only the allowance comes back.
     const engine = new Engine(EASY_001);
     engine.hint();
     engine.restart();
-    expect(engine.hintCount).toBe(1);
     expect(engine.hintUsed).toBe(true);
+    expect(engine.hintCount).toBe(0);
+    expect(engine.hintsRemaining).toBe(MAX_HINTS_PER_LEVEL);
   });
 
   it('keeps the tally through an undo', () => {

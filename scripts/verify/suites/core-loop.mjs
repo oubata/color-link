@@ -355,9 +355,16 @@ export default {
       after.stats[0] === before.stats[0],
       `${before.stats[0]} -> ${after.stats[0]}`,
     );
+    // Within a second: the clock can tick over between the save and the
+    // reload, and the point is that the elapsed time survives, not that it is
+    // frozen to the second.
+    const seconds = (clock) => {
+      const [m, sec] = String(clock).split(':').map(Number);
+      return (m || 0) * 60 + (sec || 0);
+    };
     check(
       'the elapsed time comes back',
-      after.stats[2] === before.stats[2],
+      Math.abs(seconds(after.stats[2]) - seconds(before.stats[2])) <= 1,
       `${before.stats[2]} -> ${after.stats[2]}`,
     );
     await shot('06-resumed');
