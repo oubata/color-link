@@ -107,7 +107,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--space-2) 0 0;
+  /* Off the very top edge. This comes out of the slack around the tier list,
+     so the short-screen rules below taper it back to nothing. */
+  padding: var(--space-6) 0 0;
   text-align: center;
 }
 
@@ -238,7 +240,7 @@
 /* The last of the slack, for the shortest phones still in use. */
 @media (max-height: 700px) {
   .home__header {
-    padding-top: 0;
+    padding-top: var(--space-3);
   }
 
   .home__mark {
@@ -262,6 +264,10 @@
 
 /* Shorter still: the mark shrinks and the rows close up further. */
 @media (max-height: 620px) {
+  .home__header {
+    padding-top: 0;
+  }
+
   .home__mark {
     width: 32px;
   }
