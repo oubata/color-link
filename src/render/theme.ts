@@ -50,12 +50,12 @@ export const BOARD_STYLE = {
   pathAlpha: 1,
   activePathAlpha: 1,
   /**
-   * The cell carries the colour and the line is the pale figure on top, so
-   * these are strong rather than the wash they used to be. A finished line
-   * still fills harder than one in progress, so what is done reads at a glance.
+   * The cell carries the colour and the line is the pale figure on top, so this
+   * is strong rather than the wash it used to be. One value for every occupied
+   * cell: an endpoint waiting to be joined looks exactly like a cell on a
+   * finished line, which is what makes the board read as one surface.
    */
-  tintAlpha: 0.55,
-  completedTintAlpha: 0.92,
+  tintAlpha: 0.92,
   /** How far the line is mixed toward white, away from its cell. */
   lineLighten: 0.75,
   /**

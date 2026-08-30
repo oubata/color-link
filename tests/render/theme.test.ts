@@ -43,15 +43,15 @@ describe('palette (spec 10)', () => {
 });
 
 describe('board style (spec 10)', () => {
-  it('fills a finished line more strongly than one still being drawn', () => {
-    expect(BOARD_STYLE.completedTintAlpha).toBeGreaterThan(
-      BOARD_STYLE.tintAlpha,
-    );
+  it('fills every occupied cell the same, joined or not', () => {
+    // An endpoint waiting to be connected has to look like a cell on a
+    // finished line, so the board reads as one surface.
+    expect(BOARD_STYLE).not.toHaveProperty('completedTintAlpha');
+    expect(BOARD_STYLE.tintAlpha).toBeGreaterThan(0.8);
   });
 
-  it('keeps both tints under the path stroke, so the line still leads', () => {
-    expect(BOARD_STYLE.completedTintAlpha).toBeLessThan(BOARD_STYLE.pathAlpha);
-    expect(BOARD_STYLE.tintAlpha).toBeLessThan(BOARD_STYLE.pathAlpha);
+  it('keeps the line paler than the cell it runs through', () => {
+    expect(BOARD_STYLE.lineLighten).toBeGreaterThan(0.5);
   });
 
   it('leaves the endpoint ring inside its own diameter', () => {

@@ -38,7 +38,7 @@ describe('board colour contrast (spec 10)', () => {
       for (let c = 0; c < MAX_COLORS; c++) {
         const cell = over(
           cellColor(c, ground.cellBackground),
-          BOARD_STYLE.completedTintAlpha,
+          BOARD_STYLE.tintAlpha,
           ground.cellBackground,
         );
         // Lightness only: the line and its cell share a hue, so hue does
@@ -56,16 +56,13 @@ describe('board colour contrast (spec 10)', () => {
     it(`makes an occupied cell stand out from an empty one in ${ground.name}`, () => {
       const weak: string[] = [];
       for (let c = 0; c < MAX_COLORS; c++) {
-        // The weaker of the two fills is the in-progress one.
         const cell = over(
           cellColor(c, ground.cellBackground),
           BOARD_STYLE.tintAlpha,
           ground.cellBackground,
         );
-        // minCellContrast applies to the colour itself; this is the same
-        // colour at the weaker in-progress alpha, so it lands lower.
         const ratio = contrastRatio(cell, ground.cellBackground);
-        if (ratio < 1.25) {
+        if (ratio < 1.35) {
           weak.push(`${c} ${pathColor(c)} ${ratio.toFixed(2)}:1`);
         }
       }
