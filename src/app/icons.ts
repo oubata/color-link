@@ -39,4 +39,20 @@ export const ICONS = {
   close: icon('<path d="M6 6l12 12M18 6 6 18"/>'),
 } as const;
 
+/**
+ * The app mark: two O's joined by a line, the same artwork as the launcher
+ * icon in `scripts/icons/generate.mjs`. It carries the palette's own colours
+ * rather than `currentColor`, so it is not one of the ICONS above, and it
+ * drops the icon's white plate, which would be invisible on the page anyway.
+ */
+export const APP_MARK =
+  // Cropped to the artwork's own bounds rather than the icon's 64-unit plate,
+  // so a width in CSS gives the mark that width on screen.
+  '<svg viewBox="10 14 44 36" width="100%" aria-hidden="true" focusable="false">' +
+  '<path d="M25 22 H40 a6 6 0 0 1 6 6 v7" fill="none" stroke="#118AB2" ' +
+  'stroke-width="7" stroke-linecap="butt" stroke-linejoin="round"/>' +
+  '<circle cx="18" cy="22" r="5.1" fill="none" stroke="#D62828" stroke-width="3.8"/>' +
+  '<circle cx="46" cy="42" r="5.1" fill="none" stroke="#D62828" stroke-width="3.8"/>' +
+  '</svg>';
+
 export type IconName = keyof typeof ICONS;

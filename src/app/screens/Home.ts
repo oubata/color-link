@@ -3,7 +3,7 @@ import { TIERS, tierById, type TierConfig } from '../../generator/difficulty';
 import type { Progress } from '../../storage/persistence';
 import { APP_NAME } from '../config';
 import { el, type View } from '../dom';
-import { ICONS } from '../icons';
+import { APP_MARK, ICONS } from '../icons';
 import { isUnlocked, solvedCount } from '../progress';
 import { S } from '../strings';
 
@@ -19,6 +19,7 @@ export function createHome(props: HomeProps): View {
 
   const root = el('main', { class: 'screen screen--home' }, [
     el('header', { class: 'home__header' }, [
+      el('div', { class: 'home__mark', html: APP_MARK }),
       el('h1', { class: 'home__title', text: APP_NAME }),
       el('p', { class: 'home__tagline', text: S.tagline }),
     ]),
