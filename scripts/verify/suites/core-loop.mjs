@@ -50,6 +50,39 @@ export default {
       'progress starts empty',
       home.progress.every((p) => p === '0/100'),
     );
+    // Home has to fit without scrolling, footer included. A fresh install is
+    // the tallest it ever gets: three locked tiers each carry an unlock line.
+    for (const [w, h, label] of [
+      [360, 640, 'spec minimum'],
+      [320, 568, 'the shortest phone still in use'],
+    ]) {
+      await page.setViewport(w, h, 3);
+      await sleep(400);
+      const fit = await page.evaluate(`
+        const doc = document.documentElement;
+        const footer = document.querySelector('.home__footer');
+        const rect = footer ? footer.getBoundingClientRect() : null;
+        return {
+          scrollH: doc.scrollHeight,
+          innerH: window.innerHeight,
+          footerBottom: rect ? Math.round(rect.bottom) : null,
+          lockedRows: document.querySelectorAll('.tier--locked').length,
+        };
+      `);
+      check(
+        `Home fits without scrolling at ${w}x${h} (${label})`,
+        fit.scrollH <= fit.innerH,
+        `content ${fit.scrollH} vs viewport ${fit.innerH}, ${fit.lockedRows} locked rows`,
+      );
+      check(
+        `the footer is reachable without scrolling at ${w}x${h}`,
+        fit.footerBottom !== null && fit.footerBottom <= fit.innerH,
+        `footer ends at ${fit.footerBottom} of ${fit.innerH}`,
+      );
+    }
+    await page.setViewport(360, 640, 3);
+    await sleep(300);
+
     await shot('01-home');
 
     // ---- Level select (criterion 9) ------------------------------------
