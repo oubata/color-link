@@ -302,18 +302,29 @@ export class BoardRenderer {
     context.stroke();
   }
 
+  /** Which colours are joined end to end, for this frame. */
+  private completedColors(engine: Engine): boolean[] {
+    return engine.level.pairs.map((_, color) => engine.isComplete(color));
+  }
+
+  /** The cell fill for a colour: stronger once its line is finished. */
+  private tintFor(color: number, completed: boolean[]): string {
+    return withAlpha(
+      pathColor(color),
+      completed[color] ? BOARD_STYLE.completedTintAlpha : BOARD_STYLE.tintAlpha,
+    );
+  }
+
   private drawTints(context: CanvasRenderingContext2D, engine: Engine): void {
     const { size, cellPx } = this.layout;
+    const completed = this.completedColors(engine);
     for (let row = 0; row < size; row++) {
       for (let col = 0; col < size; col++) {
         const cell: Cell = [row, col];
         const occupant = engine.occupantAt(cell);
         if (occupant === EMPTY) continue;
         const { x, y } = cellOrigin(this.layout, cell);
-        context.fillStyle = withAlpha(
-          pathColor(occupant),
-          BOARD_STYLE.tintAlpha,
-        );
+        context.fillStyle = this.tintFor(occupant, completed);
         context.fillRect(x, y, cellPx, cellPx);
       }
     }
@@ -397,6 +408,7 @@ export class BoardRenderer {
   ): void {
     const { cellPx } = this.layout;
     const baseRadius = (BOARD_STYLE.endpointDiameter * cellPx) / 2;
+    const completed = this.completedColors(engine);
 
     for (const pair of engine.level.pairs) {
       const scale = this.endpointScale(pair.color, at);
@@ -425,7 +437,7 @@ export class BoardRenderer {
             context.beginPath();
             context.arc(x, y, holeRadius, 0, Math.PI * 2);
             context.fill();
-            context.fillStyle = withAlpha(fill, BOARD_STYLE.tintAlpha);
+            context.fillStyle = this.tintFor(pair.color, completed);
           }
           context.beginPath();
           context.arc(x, y, holeRadius, 0, Math.PI * 2);

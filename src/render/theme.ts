@@ -50,6 +50,11 @@ export const BOARD_STYLE = {
   pathAlpha: 0.92,
   activePathAlpha: 1,
   tintAlpha: 0.14,
+  /**
+   * A finished line fills its cells more strongly than one still being drawn,
+   * so which colours are done reads at a glance without counting the HUD.
+   */
+  completedTintAlpha: 0.3,
   cornerRadius: 8,
   borderWidth: 2,
   gridWidth: 1,

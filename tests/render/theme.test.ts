@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_COLORS } from '../../src/generator/difficulty';
 import {
+  BOARD_STYLE,
   PATH_PALETTE,
   contrastRatio,
   labelColorOn,
@@ -38,5 +39,26 @@ describe('palette (spec 10)', () => {
   it('converts hex to rgba for the cell tint', () => {
     expect(withAlpha('#D62828', 0.14)).toBe('rgba(214, 40, 40, 0.14)');
     expect(withAlpha('#FFF', 1)).toBe('rgba(255, 255, 255, 1)');
+  });
+});
+
+describe('board style (spec 10)', () => {
+  it('fills a finished line more strongly than one still being drawn', () => {
+    expect(BOARD_STYLE.completedTintAlpha).toBeGreaterThan(
+      BOARD_STYLE.tintAlpha,
+    );
+  });
+
+  it('keeps both tints under the path stroke, so the line still leads', () => {
+    expect(BOARD_STYLE.completedTintAlpha).toBeLessThan(BOARD_STYLE.pathAlpha);
+    expect(BOARD_STYLE.tintAlpha).toBeLessThan(BOARD_STYLE.pathAlpha);
+  });
+
+  it('leaves the endpoint ring inside its own diameter', () => {
+    // Two ring widths have to fit across the O with a hole left over, or the
+    // letter closes up into a dot.
+    expect(BOARD_STYLE.endpointRingWidth * 2).toBeLessThan(
+      BOARD_STYLE.endpointDiameter,
+    );
   });
 });
