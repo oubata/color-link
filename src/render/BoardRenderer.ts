@@ -10,8 +10,9 @@ import {
 } from './layout';
 import {
   BOARD_STYLE,
+  cellColor,
   labelColorOn,
-  pathColor,
+  lineColor,
   readBoardColors,
   UI_FONT_STACK,
   withAlpha,
@@ -310,7 +311,7 @@ export class BoardRenderer {
   /** The cell fill for a colour: stronger once its line is finished. */
   private tintFor(color: number, completed: boolean[]): string {
     return withAlpha(
-      pathColor(color),
+      cellColor(color, this.colors.cellBackground),
       completed[color] ? BOARD_STYLE.completedTintAlpha : BOARD_STYLE.tintAlpha,
     );
   }
@@ -337,7 +338,7 @@ export class BoardRenderer {
       const progress = (at - cut.start) / fade;
       const alpha = Math.max(0, 1 - progress) * BOARD_STYLE.pathAlpha;
       const cells = cut.anchor ? [cut.anchor, ...cut.cells] : [...cut.cells];
-      this.strokePath(context, cells, pathColor(cut.color), alpha);
+      this.strokePath(context, cells, lineColor(cut.color), alpha);
     }
   }
 
@@ -362,7 +363,7 @@ export class BoardRenderer {
       this.strokePath(
         context,
         cells,
-        pathColor(color),
+        lineColor(color),
         this.pathAlpha(color, engine, at),
       );
     }
@@ -413,7 +414,7 @@ export class BoardRenderer {
     for (const pair of engine.level.pairs) {
       const scale = this.endpointScale(pair.color, at);
       const radius = baseRadius * scale;
-      const fill = pathColor(pair.color);
+      const fill = lineColor(pair.color);
 
       const ringWidth = BOARD_STYLE.endpointRingWidth * cellPx * scale;
       const holeRadius = Math.max(0, radius - ringWidth);
