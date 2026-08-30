@@ -49,6 +49,8 @@ export const S = {
   best: 'Best',
   newBest: 'New best',
   hintUsed: 'Hint used',
+  hintsUsed: (count: number) =>
+    count === 1 ? '1 hint used' : `${count} hints used`,
   nextLevel: 'Next level',
   replay: 'Replay',
 

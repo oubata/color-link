@@ -173,7 +173,16 @@ export default {
       won?.title === 'Solved',
       String(won?.title),
     );
-    check('the won card reports the hint', /Hint used/.test(won?.text ?? ''));
+    // The level above was solved entirely with hints, so the card should name
+    // the number taken, not just that one was.
+    const hintNote = (won?.text ?? '').match(/(\d+) hints? used/);
+    check(
+      'the won card reports how many hints were taken',
+      hintNote !== null && Number(hintNote[1]) >= 1,
+      hintNote
+        ? hintNote[0]
+        : `no hint note in: ${(won?.text ?? '').slice(0, 80)}`,
+    );
     check(
       'the solved board stays visible behind the card',
       won?.boardVisible === true,

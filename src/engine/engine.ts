@@ -34,7 +34,7 @@ export class Engine {
   private strokeColor = EMPTY;
   private strokeSnapshot: Cell[][] | null = null;
   private movesCount = 0;
-  private hintWasUsed = false;
+  private hintCounter = 0;
   private wonFlag = false;
   /** Bumped on every actual state change; drives the interpolation stop rule. */
   private mutations = 0;
@@ -66,7 +66,12 @@ export class Engine {
   }
 
   get hintUsed(): boolean {
-    return this.hintWasUsed;
+    return this.hintCounter > 0;
+  }
+
+  /** How many times hint() has been taken on this level. */
+  get hintCount(): number {
+    return this.hintCounter;
   }
 
   get won(): boolean {
@@ -244,7 +249,7 @@ export class Engine {
 
     this.undoStack.push(snapshot);
     this.movesCount++;
-    this.hintWasUsed = true;
+    this.hintCounter++;
     this.mutations++;
     this.emit({ type: 'pathCompleted', color });
     this.emit({ type: 'change' });
@@ -252,9 +257,12 @@ export class Engine {
     return true;
   }
 
-  /** Mark the level as having been hinted (used when restoring a saved board). */
-  markHintUsed(): void {
-    this.hintWasUsed = true;
+  /** Restore the hint tally of a saved board. */
+  markHintUsed(count = 1): void {
+    this.hintCounter = Math.max(
+      this.hintCounter,
+      Math.max(0, Math.trunc(count)),
+    );
   }
 
   /**

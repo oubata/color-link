@@ -5,6 +5,7 @@ export interface WonResult {
   bestMs: number;
   newBest: boolean;
   hintUsed: boolean;
+  hintCount: number;
   perfect: boolean;
 }
 

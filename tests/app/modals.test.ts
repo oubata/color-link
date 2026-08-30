@@ -175,6 +175,7 @@ describe('Won card (spec 9)', () => {
     bestMs: 62_000,
     newBest: false,
     hintUsed: false,
+    hintCount: 0,
     perfect: false,
   };
 
@@ -228,9 +229,25 @@ describe('Won card (spec 9)', () => {
     root.remove();
   });
 
-  it('owns up to a hint', () => {
-    const { root } = won({ ...base, hintUsed: true });
-    expect(root.textContent).toContain('Hint used');
+  it('says how many hints were taken', () => {
+    const one = won({ ...base, hintUsed: true, hintCount: 1 });
+    expect(one.root.textContent).toContain('1 hint used');
+    one.root.remove();
+
+    const several = won({ ...base, hintUsed: true, hintCount: 4 });
+    expect(several.root.textContent).toContain('4 hints used');
+    several.root.remove();
+  });
+
+  it('never says zero hints on a hinted level', () => {
+    const { root } = won({ ...base, hintUsed: true, hintCount: 0 });
+    expect(root.textContent).toContain('1 hint used');
+    root.remove();
+  });
+
+  it('says nothing about hints when none were taken', () => {
+    const { root } = won({ ...base, hintUsed: false, hintCount: 0 });
+    expect(root.textContent).not.toContain('hint');
     root.remove();
   });
 

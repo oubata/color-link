@@ -75,6 +75,7 @@ describe('persistence (spec 11.2)', () => {
       elapsedMs: 12345,
       moves: 3,
       hintUsed: true,
+      hintCount: 2,
     };
     store.saveInProgress(value);
     expect(store.loadInProgress()).toEqual(value);
@@ -87,6 +88,7 @@ describe('persistence (spec 11.2)', () => {
       elapsedMs: 0,
       moves: 0,
       hintUsed: false,
+      hintCount: 0,
     });
     store.saveInProgress(null);
     expect(store.loadInProgress()).toBeNull();
@@ -158,6 +160,7 @@ describe('persistence (spec 11.2)', () => {
       elapsedMs: 1,
       moves: 0,
       hintUsed: false,
+      hintCount: 0,
     });
     store.resetAll();
     expect(storage.map.size).toBe(0);

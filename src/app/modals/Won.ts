@@ -63,7 +63,12 @@ export function createWon(props: WonProps): View {
         : null,
       summary,
       result.hintUsed
-        ? el('p', { class: 'modal__note', text: S.hintUsed })
+        ? el('p', {
+            class: 'modal__note',
+            // A board saved before the tally existed knows a hint happened but
+            // not how many, so one is the least it can honestly say.
+            text: S.hintsUsed(Math.max(1, result.hintCount)),
+          })
         : null,
       actions,
     ],

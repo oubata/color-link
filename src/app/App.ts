@@ -433,6 +433,7 @@ export class App {
       bestMs: record?.bestMs ?? snapshot.elapsedMs,
       newBest,
       hintUsed: snapshot.hintUsed,
+      hintCount: snapshot.hintCount,
       perfect,
     });
   }

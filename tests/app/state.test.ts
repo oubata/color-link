@@ -7,6 +7,7 @@ const RESULT: WonResult = {
   bestMs: 62_000,
   newBest: false,
   hintUsed: false,
+  hintCount: 0,
   perfect: true,
 };
 

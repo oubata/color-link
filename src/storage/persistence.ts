@@ -40,6 +40,7 @@ export interface InProgress {
   elapsedMs: number;
   moves: number;
   hintUsed: boolean;
+  hintCount: number;
 }
 
 const TIER_IDS: readonly TierId[] = [
@@ -220,12 +221,23 @@ export function parseInProgress(raw: unknown): InProgress | null {
     parsed.push(cells);
   }
 
+  // Boards saved before the tally existed only recorded that a hint happened,
+  // so one is the most that can honestly be claimed for them.
+  const storedCount = raw['hintCount'];
+  const hintCount =
+    typeof storedCount === 'number' && Number.isFinite(storedCount)
+      ? Math.max(0, Math.trunc(storedCount))
+      : raw['hintUsed'] === true
+        ? 1
+        : 0;
+
   return {
     levelId,
     paths: parsed,
     elapsedMs: Math.max(0, elapsedMs),
     moves: typeof raw['moves'] === 'number' ? raw['moves'] : 0,
-    hintUsed: raw['hintUsed'] === true,
+    hintUsed: hintCount > 0,
+    hintCount,
   };
 }
 

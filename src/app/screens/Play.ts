@@ -17,6 +17,7 @@ export interface PlaySnapshot {
   elapsedMs: number;
   moves: number;
   hintUsed: boolean;
+  hintCount: number;
 }
 
 export interface PlayProps {
@@ -130,7 +131,9 @@ export class PlayView implements View {
 
     if (props.restore) {
       this.engine.restore(props.restore.paths);
-      if (props.restore.hintUsed) this.engine.markHintUsed();
+      if (props.restore.hintUsed) {
+        this.engine.markHintUsed(props.restore.hintCount);
+      }
       this.elapsedBase = props.restore.elapsedMs;
     }
 
@@ -204,6 +207,7 @@ export class PlayView implements View {
       elapsedMs: this.elapsedMs,
       moves: this.engine.moves,
       hintUsed: this.engine.hintUsed,
+      hintCount: this.engine.hintCount,
     };
   }
 

@@ -81,3 +81,58 @@ describe('hint (spec 5.2)', () => {
     expect(engine.hint()).toBe(false);
   });
 });
+
+describe('hint tally', () => {
+  it('starts at zero and counts each hint taken', () => {
+    const engine = new Engine(EASY_001);
+    expect(engine.hintCount).toBe(0);
+    expect(engine.hintUsed).toBe(false);
+
+    engine.hint();
+    expect(engine.hintCount).toBe(1);
+    expect(engine.hintUsed).toBe(true);
+
+    engine.hint();
+    engine.hint();
+    expect(engine.hintCount).toBe(3);
+  });
+
+  it('keeps the tally through a restart, as hintUsed always did', () => {
+    // Spec 5.2: restart leaves hintUsed alone. The count follows the same rule,
+    // or restarting would launder away the hints already taken.
+    const engine = new Engine(EASY_001);
+    engine.hint();
+    engine.hint();
+    engine.restart();
+    expect(engine.hintCount).toBe(2);
+    expect(engine.hintUsed).toBe(true);
+  });
+
+  it('keeps the tally through an undo', () => {
+    const engine = new Engine(EASY_001);
+    engine.hint();
+    engine.undo();
+    expect(engine.hintCount).toBe(1);
+  });
+
+  it('restores the tally of a saved board', () => {
+    const engine = new Engine(EASY_001);
+    engine.markHintUsed(4);
+    expect(engine.hintCount).toBe(4);
+    expect(engine.hintUsed).toBe(true);
+  });
+
+  it('treats a board saved before the tally as one hint', () => {
+    const engine = new Engine(EASY_001);
+    engine.markHintUsed();
+    expect(engine.hintCount).toBe(1);
+  });
+
+  it('never lets a restore lower a tally already earned', () => {
+    const engine = new Engine(EASY_001);
+    engine.hint();
+    engine.hint();
+    engine.markHintUsed(1);
+    expect(engine.hintCount).toBe(2);
+  });
+});
