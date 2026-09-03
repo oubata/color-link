@@ -1,6 +1,6 @@
 {
   "appId": "com.oubata.colorlink",
-  "appName": "pOZ-Link",
+  "appName": "PUZLink",
   "webDir": "dist",
   "android": {
     "backgroundColor": "#FFFFFF"

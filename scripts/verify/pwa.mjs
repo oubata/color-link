@@ -88,7 +88,7 @@ try {
   check('the page links a web app manifest', manifest !== null);
   check(
     'the manifest names the app',
-    manifest?.name === 'pOZ-Link' && manifest?.short_name === 'pOZ-Link',
+    manifest?.name === 'PUZLink' && manifest?.short_name === 'PUZLink',
     `${manifest?.name} / ${manifest?.short_name}`,
   );
   check(

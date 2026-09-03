@@ -59,7 +59,8 @@ export const UI_FONT_STACK =
 export const BOARD_STYLE = {
   endpointDiameter: 0.62,
   /**
-   * Endpoints are drawn as the letter O, not a filled dot (the O of pOZ-Link).
+   * Endpoints are drawn as the letter O, not a filled dot: the mark the app
+   * and its icon are built from.
    * A fraction of the cell, like every other measurement here, so the ring
    * stays legible from a 20px Master cell up to a 72px Easy one.
    */

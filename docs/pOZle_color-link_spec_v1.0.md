@@ -922,7 +922,7 @@ while this was being written.
 
 ### Renamed to pOZ-Link, and endpoints are now O's (Tob, 28 August 2026)
 
-**The working title in assumption 14 is settled: pOZ-Link.** It lives in
+**The working title in assumption 14 is settled: PUZLink** (briefly pOZ-Link). It lives in
 `APP_NAME` exactly as section 2 promised, so the Home masthead, the page title,
 the web app manifest and the Won card all follow from one constant. The two
 places outside TypeScript that carry a name of their own — `capacitor.config.json`

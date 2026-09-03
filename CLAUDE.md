@@ -1,4 +1,4 @@
-# pOZ-Link — conventions for Claude Code
+# PUZLink — conventions for Claude Code
 
 - The spec is `docs/pOZle_color-link_spec_v1.0.md`. It is the source of truth. If code and spec disagree, the spec wins; if the spec is ambiguous or wrong, stop and ask rather than guess.
 - Build in the phase order of spec section 17. Do not start a phase until the previous phase's definition of done is met. Report at each milestone.
