@@ -2,7 +2,7 @@
 export const APP_NAME = 'PUZLink';
 
 /** Human-facing version string, shown in Settings. */
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.0.0-rc.1';
 
 /** localStorage key prefix; the `v1` segment is the storage schema version. */
 export const STORAGE_PREFIX = 'colorlink:v1:';

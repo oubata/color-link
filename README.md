@@ -28,7 +28,7 @@ in `localStorage`.
 | `npm run dev`           | Dev server with hot reload                                                                                      |
 | `npm run build`         | Type-check, then a production bundle in `dist/`                                                                 |
 | `npm run preview`       | Serve the built `dist/` locally                                                                                 |
-| `npm test`              | 188 unit tests (Vitest)                                                                                         |
+| `npm test`              | 233 unit tests (Vitest)                                                                                         |
 | `npm run verify`        | Drives a headless browser through the app and checks the spec 12 criteria that can only be judged by running it |
 | `npm run verify:pwa`    | Builds, then checks the manifest, icons, service worker, and a real offline reload                              |
 | `npm run icons`         | Re-rasterises the PNG icons from the artwork in `scripts/icons/generate.mjs`                                    |
